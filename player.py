@@ -11,15 +11,13 @@ GRAVITY = -2000.0
 JUMP_VY = 900.0
 MOVE_SPEED = 400.0
 
-FRAME_W = 100
-FRAME_H = 100
 HALF_W = 60
-HALF_H = int(FRAME_H * sprite.DRAW_SCALE) // 2
+HALF_H = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
 
-SHEETS = {
-    IDLE: ('assets/player_idle.png', 4),
-    WALK: ('assets/player_walk.png', 8),
-    JUMP: ('assets/player_jump.png', 6),
+_STATE_SHEET = {
+    IDLE: 'player_idle',
+    WALK: 'player_walk',
+    JUMP: 'player_jump',
 }
 
 
@@ -62,7 +60,7 @@ class Player:
         self.x += self.vx * frame_time
         self.y += self.vy * frame_time
 
-        half_sprite_w = int(FRAME_W * sprite.DRAW_SCALE) // 2
+        half_sprite_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
         self.x = max(float(half_sprite_w), min(1920.0 - half_sprite_w, self.x))
 
         if self.state == JUMP:
@@ -79,9 +77,9 @@ class Player:
             self._reset()
 
         if self.state == IDLE:
-            self.frame = (self.frame + sprite.IDLE_FPS * frame_time) % SHEETS[IDLE][1]
+            self.frame = (self.frame + sprite.IDLE_FPS * frame_time) % sprite.SHEETS[_STATE_SHEET[IDLE]][1]
         elif self.state == WALK:
-            self.frame = (self.frame + sprite.WALK_FPS * frame_time) % SHEETS[WALK][1]
+            self.frame = (self.frame + sprite.WALK_FPS * frame_time) % sprite.SHEETS[_STATE_SHEET[WALK]][1]
         else:
             if self.vy > 600:
                 self.frame = 0.0
@@ -127,9 +125,9 @@ class Player:
         self.frame = 0.0
 
     def draw(self):
-        path, _ = SHEETS[self.state]
+        path, _ = sprite.SHEETS[_STATE_SHEET[self.state]]
         draw_y = self.y + camera.oy - sprite.FOOT_MARGIN * sprite.DRAW_SCALE
         sprite.draw_frame(
-            path, int(self.frame), FRAME_W, FRAME_H,
+            path, int(self.frame), sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
             self.x + camera.ox, draw_y, self.flip
         )
