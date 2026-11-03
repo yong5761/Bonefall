@@ -1,6 +1,7 @@
 import pico2d
 
 DRAW_SCALE = 2.0
+FOOT_MARGIN = 8
 _cache = {}
 
 

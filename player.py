@@ -115,7 +115,8 @@ class Player:
 
     def draw(self):
         path, _ = SHEETS[self.state]
+        draw_y = self.y + camera.oy - sprite.FOOT_MARGIN * sprite.DRAW_SCALE
         sprite.draw_frame(
             path, int(self.frame), FRAME_W, FRAME_H,
-            self.x + camera.ox, self.y + camera.oy, self.flip
+            self.x + camera.ox, draw_y, self.flip
         )
