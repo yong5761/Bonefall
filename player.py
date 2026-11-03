@@ -6,10 +6,12 @@ import game_world
 IDLE = 0
 WALK = 1
 JUMP = 2
+BLAST = 3
 
 GRAVITY = -2000.0
 JUMP_VY = 900.0
 MOVE_SPEED = 400.0
+BLAST_DURATION = 0.4
 
 HALF_W = 60
 HALF_H = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
@@ -18,6 +20,7 @@ _STATE_SHEET = {
     IDLE: 'player_idle',
     WALK: 'player_walk',
     JUMP: 'player_jump',
+    BLAST: 'player_blast',
 }
 
 
@@ -32,15 +35,47 @@ class Player:
         self.state = IDLE
         self.flip = False
         self.frame = 0.0
+        self._blast_vx = 0.0
+        self._blast_elapsed = 0.0
 
     def handle_event(self, event):
         if event.type == pico2d.SDL_KEYDOWN:
-            if event.key == pico2d.SDLK_SPACE and self.state != JUMP:
+            if event.key == pico2d.SDLK_SPACE and self.state not in (JUMP, BLAST):
                 self.vy = JUMP_VY
                 self.state = JUMP
                 self.frame = 0.0
 
+    def receive_blast(self, vx, vy):
+        self.vx = vx
+        self.vy = vy
+        self._blast_vx = vx
+        self._blast_elapsed = 0.0
+        self.state = BLAST
+        self.frame = 0.0
+        camera.shake(20, 0.4)
+
     def update(self, frame_time, keys):
+        if self.state == BLAST:
+            self._blast_elapsed += frame_time
+            ratio = max(0.0, 1.0 - self._blast_elapsed / BLAST_DURATION)
+            self.vx = self._blast_vx * ratio
+            self.vy += GRAVITY * frame_time
+            prev_y = self.y
+            self.x += self.vx * frame_time
+            self.y += self.vy * frame_time
+            half_sprite_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
+            self.x = max(float(half_sprite_w), min(1920.0 - half_sprite_w, self.x))
+            if self.vy <= 0 and self._try_land(prev_y):
+                self.state = WALK if (pico2d.SDLK_LEFT in keys or pico2d.SDLK_RIGHT in keys) else IDLE
+            elif self._blast_elapsed >= BLAST_DURATION:
+                self.state = JUMP
+                self.vx = 0.0
+            if self.y < -300:
+                self._reset()
+            blast_count = sprite.SHEETS['player_blast'][1]
+            self.frame = min(self._blast_elapsed / BLAST_DURATION * blast_count, float(blast_count - 1))
+            return
+
         left = pico2d.SDLK_LEFT in keys
         right = pico2d.SDLK_RIGHT in keys
 
