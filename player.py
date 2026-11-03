@@ -16,8 +16,6 @@ FRAME_H = 100
 HALF_W = 60
 HALF_H = int(FRAME_H * sprite.DRAW_SCALE) // 2
 
-ANIM_FPS = 8.0
-
 SHEETS = {
     IDLE: ('assets/player_idle.png', 4),
     WALK: ('assets/player_walk.png', 8),
@@ -80,8 +78,23 @@ class Player:
         if self.y < -300:
             self._reset()
 
-        path, total = SHEETS[self.state]
-        self.frame = (self.frame + ANIM_FPS * frame_time) % total
+        if self.state == IDLE:
+            self.frame = (self.frame + sprite.IDLE_FPS * frame_time) % SHEETS[IDLE][1]
+        elif self.state == WALK:
+            self.frame = (self.frame + sprite.WALK_FPS * frame_time) % SHEETS[WALK][1]
+        else:
+            if self.vy > 600:
+                self.frame = 0.0
+            elif self.vy > 300:
+                self.frame = 1.0
+            elif self.vy > 100:
+                self.frame = 2.0
+            elif self.vy > -100:
+                self.frame = 3.0
+            elif self.vy > -400:
+                self.frame = 4.0
+            else:
+                self.frame = 5.0
 
     def _try_land(self, prev_y):
         prev_feet = prev_y - HALF_H

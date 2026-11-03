@@ -2,6 +2,8 @@ import pico2d
 
 DRAW_SCALE = 2.0
 FOOT_MARGIN = 8
+WALK_FPS = 14
+IDLE_FPS = 6
 _cache = {}
 
 
