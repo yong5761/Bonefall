@@ -9,7 +9,7 @@ PLAYER_FRAME = 100
 SHEETS = {
     'player_idle':      ('assets/player_idle.png',      4),
     'player_walk':      ('assets/player_walk.png',      16),
-    'player_jump':      ('assets/player_jump.png',      6),
+    'player_jump':      ('assets/player_jump.png',      11),
     'player_plant':     ('assets/player_plant.png',     4),
     'player_blast':     ('assets/player_blast.png',     6),
     'enemy_walk':       ('assets/enemy_walk.png',       8),
