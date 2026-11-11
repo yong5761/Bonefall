@@ -41,7 +41,7 @@ class Explosion:
         frame = min(int(self.elapsed / ANIM_DURATION * FRAME_COUNT), FRAME_COUNT - 1)
         bottom_offset = sprite.PLAYER_FRAME if self.blast_type == 0 else 0
         img = sprite.load('assets/explosion.png')
-        out_size = int(sprite.BLAST_RADIUS_SRC * 2 * sprite.DRAW_SCALE)
+        out_size = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE)
         img.clip_composite_draw(
             frame * sprite.PLAYER_FRAME, bottom_offset,
             sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,

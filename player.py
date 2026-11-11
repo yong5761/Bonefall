@@ -58,21 +58,23 @@ class Player:
             ratio = max(0.0, 1.0 - self._blast_elapsed / sprite.BLAST_DECAY)
             self.vx = self._blast_vx * ratio
             self.vy += GRAVITY * frame_time
-            if self.vy <= 0 and self._on_ground():
-                self.state = WALK if (pico2d.SDLK_LEFT in keys or pico2d.SDLK_RIGHT in keys) else IDLE
-                self.vx = 0.0
+            if self.vy < 0 and self._on_ground():
                 self.vy = 0.0
-            else:
-                prev_y = self.y
-                self.x += self.vx * frame_time
-                self.y += self.vy * frame_time
-                half_sprite_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
-                self.x = max(float(half_sprite_w), min(1920.0 - half_sprite_w, self.x))
-                if self.vy <= 0 and self._try_land(prev_y):
-                    self.state = WALK if (pico2d.SDLK_LEFT in keys or pico2d.SDLK_RIGHT in keys) else IDLE
-                elif self._blast_elapsed >= sprite.BLAST_DECAY:
-                    self.state = JUMP
-                    self.vx = 0.0
+                for tile in game_world.get_tiles():
+                    if self.x + HALF_W <= tile.left_x or self.x - HALF_W >= tile.right_x:
+                        continue
+                    if abs(self.y - HALF_H - tile.surface_y) <= 4:
+                        self.y = tile.surface_y + HALF_H
+                        break
+            prev_y = self.y
+            self.x += self.vx * frame_time
+            self.y += self.vy * frame_time
+            half_sprite_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
+            self.x = max(float(half_sprite_w), min(1920.0 - half_sprite_w, self.x))
+            if self.vy <= 0:
+                self._try_land(prev_y)
+            if self._blast_elapsed >= sprite.BLAST_DECAY and self._on_ground():
+                self.state = WALK if (pico2d.SDLK_LEFT in keys or pico2d.SDLK_RIGHT in keys) else IDLE
             if self.y < -300:
                 self._reset()
             blast_count = sprite.SHEETS['player_blast'][1]
