@@ -12,6 +12,7 @@ GRAVITY = -2000.0
 JUMP_VY = 900.0
 MOVE_SPEED = 400.0
 HALF_W = 60
+FOOT_HALF_W = int(sprite.FOOT_HALF_W_SRC * sprite.DRAW_SCALE)
 HALF_H = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
 
 _STATE_SHEET = {
@@ -61,7 +62,7 @@ class Player:
             if self.vy < 0 and self._on_ground():
                 self.vy = 0.0
                 for tile in game_world.get_tiles():
-                    if self.x + HALF_W <= tile.left_x or self.x - HALF_W >= tile.right_x:
+                    if self.x + FOOT_HALF_W <= tile.left_x or self.x - FOOT_HALF_W >= tile.right_x:
                         continue
                     if abs(self.y - HALF_H - tile.surface_y) <= 4:
                         self.y = tile.surface_y + HALF_H
@@ -168,7 +169,7 @@ class Player:
         prev_feet = prev_y - HALF_H
         curr_feet = self.y - HALF_H
         for tile in game_world.get_tiles():
-            if self.x + HALF_W <= tile.left_x or self.x - HALF_W >= tile.right_x:
+            if self.x + FOOT_HALF_W <= tile.left_x or self.x - FOOT_HALF_W >= tile.right_x:
                 continue
             if prev_feet > tile.surface_y and curr_feet <= tile.surface_y:
                 self.y = tile.surface_y + HALF_H
@@ -180,7 +181,7 @@ class Player:
     def _on_ground(self):
         feet_y = self.y - HALF_H
         for tile in game_world.get_tiles():
-            if self.x + HALF_W <= tile.left_x or self.x - HALF_W >= tile.right_x:
+            if self.x + FOOT_HALF_W <= tile.left_x or self.x - FOOT_HALF_W >= tile.right_x:
                 continue
             if abs(feet_y - tile.surface_y) <= 4:
                 return True
