@@ -3,8 +3,6 @@ import camera
 import game_world
 
 RADIUS = 160 * sprite.DRAW_SCALE
-BLAST_SPEED = 600.0
-BLAST_DURATION = 0.4
 ANIM_DURATION = 0.3
 FRAME_COUNT = 11
 
@@ -31,7 +29,8 @@ class Explosion:
                 nx, ny = dx / dist, dy / dist
             if self.blast_type == 1:
                 nx, ny = -nx, -ny
-            p.receive_blast(nx * BLAST_SPEED, ny * BLAST_SPEED)
+            p.receive_blast(nx * sprite.BLAST_SPEED_SRC * sprite.DRAW_SCALE,
+                            ny * sprite.BLAST_SPEED_SRC * sprite.DRAW_SCALE)
 
     def update(self, frame_time):
         self.elapsed += frame_time
