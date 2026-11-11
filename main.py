@@ -16,6 +16,9 @@ def main():
     player = Player(400, 420)
     game_world.set_player(player)
 
+    for e in stage.build_enemies():
+        game_world.add(e)
+
     prev_ticks = pico2d.SDL_GetTicks()
     keys = set()
     running = True
@@ -34,8 +37,6 @@ def main():
                     running = False
                 elif event.key == pico2d.SDLK_f:
                     camera.shake(14, 0.35)
-                elif event.key == pico2d.SDLK_z:
-                    bomb.place(player.x, player.y)
                 elif event.key in (pico2d.SDLK_LSHIFT, pico2d.SDLK_RSHIFT):
                     bomb.toggle_type()
                 player.handle_event(event)
@@ -45,6 +46,16 @@ def main():
         camera.update(frame_time)
         player.update(frame_time, keys)
         game_world.update(frame_time)
+
+        if not game_world.get_enemies():
+            bomb.remove_active()
+            game_world.clear()
+            for tile in stage.build_stage():
+                game_world.add(tile)
+            game_world.set_player(player)
+            for e in stage.build_enemies():
+                game_world.add(e)
+            player._reset()
 
         pico2d.draw_rectangle(0, 0, 1920, 1080, r=43, g=58, b=74, a=255, filled=True)
         game_world.draw()

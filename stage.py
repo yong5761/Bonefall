@@ -1,4 +1,5 @@
 from tile import Tile
+from enemy import Enemy
 
 
 def build_stage():
@@ -27,3 +28,11 @@ def build_stage():
     tiles.append(Tile(7, 4, 2))
 
     return tiles
+
+
+def build_enemies():
+    return [
+        Enemy(720, 420),
+        Enemy(1300, 420),
+        Enemy(960, 900),
+    ]

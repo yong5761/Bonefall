@@ -37,3 +37,8 @@ def clear():
 def get_tiles():
     from tile import Tile
     return [obj for obj in _objects if isinstance(obj, Tile)]
+
+
+def get_enemies():
+    from enemy import Enemy
+    return [obj for obj in _objects if isinstance(obj, Enemy)]
