@@ -116,28 +116,48 @@ class Player:
         elif self.state == WALK:
             self.frame = (self.frame + sprite.WALK_FPS * frame_time) % sprite.SHEETS[_STATE_SHEET[WALK]][1]
         else:
-            if self.vy > 780:
+            if self.vy > 820:
                 self.frame = 0.0
-            elif self.vy > 600:
+            elif self.vy > 730:
                 self.frame = 1.0
-            elif self.vy > 430:
+            elif self.vy > 640:
                 self.frame = 2.0
-            elif self.vy > 280:
+            elif self.vy > 550:
                 self.frame = 3.0
-            elif self.vy > 150:
+            elif self.vy > 460:
                 self.frame = 4.0
-            elif self.vy > -60:
+            elif self.vy > 375:
                 self.frame = 5.0
-            elif self.vy > -220:
+            elif self.vy > 290:
                 self.frame = 6.0
-            elif self.vy > -380:
+            elif self.vy > 205:
                 self.frame = 7.0
-            elif self.vy > -540:
+            elif self.vy > 125:
                 self.frame = 8.0
-            elif self.vy > -720:
+            elif self.vy > 45:
                 self.frame = 9.0
-            else:
+            elif self.vy > -45:
                 self.frame = 10.0
+            elif self.vy > -125:
+                self.frame = 11.0
+            elif self.vy > -205:
+                self.frame = 12.0
+            elif self.vy > -290:
+                self.frame = 13.0
+            elif self.vy > -375:
+                self.frame = 14.0
+            elif self.vy > -460:
+                self.frame = 15.0
+            elif self.vy > -550:
+                self.frame = 16.0
+            elif self.vy > -640:
+                self.frame = 17.0
+            elif self.vy > -730:
+                self.frame = 18.0
+            elif self.vy > -820:
+                self.frame = 19.0
+            else:
+                self.frame = 20.0
 
     def _try_land(self, prev_y):
         prev_feet = prev_y - HALF_H
