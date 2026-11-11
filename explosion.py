@@ -2,7 +2,7 @@ import sprite
 import camera
 import game_world
 
-RADIUS = 160 * sprite.DRAW_SCALE
+RADIUS = sprite.BLAST_RADIUS_SRC * sprite.DRAW_SCALE
 ANIM_DURATION = 0.3
 FRAME_COUNT = 11
 
