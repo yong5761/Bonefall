@@ -7,11 +7,11 @@ IDLE = 0
 WALK = 1
 JUMP = 2
 BLAST = 3
+PLANT = 4
 
 GRAVITY = -2000.0
 JUMP_VY = 900.0
 MOVE_SPEED = 400.0
-HALF_W = 60
 FOOT_HALF_W = int(sprite.FOOT_HALF_W_SRC * sprite.DRAW_SCALE)
 HALF_H = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
 
@@ -20,6 +20,7 @@ _STATE_SHEET = {
     WALK: 'player_walk',
     JUMP: 'player_jump',
     BLAST: 'player_blast',
+    PLANT: 'player_plant',
 }
 
 
@@ -36,12 +37,18 @@ class Player:
         self.frame = 0.0
         self._blast_vx = 0.0
         self._blast_elapsed = 0.0
+        self._control_vx = 0.0
 
     def handle_event(self, event):
         if event.type == pico2d.SDL_KEYDOWN:
-            if event.key == pico2d.SDLK_SPACE and self.state not in (JUMP, BLAST):
+            if event.key == pico2d.SDLK_SPACE and self.state not in (JUMP, BLAST, PLANT):
                 self.vy = JUMP_VY
                 self.state = JUMP
+                self.frame = 0.0
+            elif event.key == pico2d.SDLK_z and self.state not in (PLANT, BLAST):
+                import bomb
+                bomb.throw(self.x, self.y, self.flip)
+                self.state = PLANT
                 self.frame = 0.0
 
     def receive_blast(self, vx, vy):
@@ -54,28 +61,76 @@ class Player:
         camera.shake(20, sprite.BLAST_DECAY)
 
     def update(self, frame_time, keys):
-        if self.state == BLAST:
-            self._blast_elapsed += frame_time
-            ratio = max(0.0, 1.0 - self._blast_elapsed / sprite.BLAST_DECAY)
-            self.vx = self._blast_vx * ratio
-            self.vy += GRAVITY * frame_time
-            if self.vy < 0 and self._on_ground():
+        if self.state == PLANT:
+            left = pico2d.SDLK_LEFT in keys
+            right = pico2d.SDLK_RIGHT in keys
+            if left and not right:
+                self.vx = -MOVE_SPEED
+                self.flip = True
+            elif right and not left:
+                self.vx = MOVE_SPEED
+                self.flip = False
+            else:
+                self.vx = 0.0
+            on_ground = self._on_ground()
+            if not on_ground:
+                self.vy += GRAVITY * frame_time
+            else:
                 self.vy = 0.0
-                for tile in game_world.get_tiles():
-                    if self.x + FOOT_HALF_W <= tile.left_x or self.x - FOOT_HALF_W >= tile.right_x:
-                        continue
-                    if abs(self.y - HALF_H - tile.surface_y) <= 4:
-                        self.y = tile.surface_y + HALF_H
-                        break
             prev_y = self.y
             self.x += self.vx * frame_time
             self.y += self.vy * frame_time
             half_sprite_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
             self.x = max(float(half_sprite_w), min(1920.0 - half_sprite_w, self.x))
-            if self.vy <= 0:
+            if not on_ground and self.vy <= 0:
+                saved_frame = self.frame
                 self._try_land(prev_y)
-            if self._blast_elapsed >= sprite.BLAST_DECAY and self._on_ground():
-                self.state = WALK if (pico2d.SDLK_LEFT in keys or pico2d.SDLK_RIGHT in keys) else IDLE
+                self.frame = saved_frame
+            plant_count = sprite.SHEETS[_STATE_SHEET[PLANT]][1]
+            self.frame += sprite.PLANT_FPS * frame_time
+            if self.frame >= plant_count:
+                self.frame = 0.0
+                if self._on_ground():
+                    self.state = WALK if (left or right) else IDLE
+                else:
+                    self.state = JUMP
+            if self.y < -300:
+                self._reset()
+            return
+
+        if self.state == BLAST:
+            self._blast_elapsed += frame_time
+            ratio = max(0.0, 1.0 - self._blast_elapsed / sprite.BLAST_DECAY)
+            self.vx = self._blast_vx * ratio
+            left = pico2d.SDLK_LEFT in keys
+            right = pico2d.SDLK_RIGHT in keys
+            if left and not right:
+                self._control_vx = -MOVE_SPEED * sprite.AIR_CONTROL_RATIO
+                self.flip = True
+            elif right and not left:
+                self._control_vx = MOVE_SPEED * sprite.AIR_CONTROL_RATIO
+                self.flip = False
+            else:
+                self._control_vx = 0.0
+            prev_y = self.y
+            self.vy += GRAVITY * frame_time
+            self.x += (self.vx + self._control_vx) * frame_time
+            self.y += self.vy * frame_time
+            half_sprite_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
+            self.x = max(float(half_sprite_w), min(1920.0 - half_sprite_w, self.x))
+            prev_feet = prev_y - HALF_H
+            curr_feet = self.y - HALF_H
+            landed = False
+            for tile in game_world.get_tiles():
+                if self.x + FOOT_HALF_W <= tile.left_x or self.x - FOOT_HALF_W >= tile.right_x:
+                    continue
+                if prev_feet >= tile.surface_y and curr_feet <= tile.surface_y:
+                    self.y = tile.surface_y + HALF_H
+                    self.vy = 0.0
+                    landed = True
+                    break
+            if landed and self._blast_elapsed >= sprite.BLAST_DECAY:
+                self.state = WALK if (left or right) else IDLE
             if self.y < -300:
                 self._reset()
             blast_count = sprite.SHEETS['player_blast'][1]
@@ -188,6 +243,8 @@ class Player:
         return False
 
     def _reset(self):
+        import bomb
+        bomb.remove_active()
         self.x = self.start_x
         self.y = self.start_y
         self.vx = 0.0

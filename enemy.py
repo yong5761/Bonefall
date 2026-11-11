@@ -34,13 +34,17 @@ class Enemy:
         self._reviving = False
         self._revival_flip = False
         self._fall_elapsed = 0.0
+        self._fall_blast_vx = 0.0
+        self._fall_decay = sprite.BLAST_DECAY
 
     def receive_blast(self, vx, vy):
         if self.state == FALL:
             return
         if self.state == COLLAPSE:
-            self.vx = vx * 2.0
-            self.vy = vy * 2.0
+            self.vx = vx
+            self.vy = vy
+            self._fall_blast_vx = vx
+            self._fall_decay = sprite.BLAST_DECAY * sprite.COLLAPSED_DECAY_MULT
             self.state = FALL
             self.frame = 0.0
             self._fall_elapsed = 0.0
@@ -88,6 +92,8 @@ class Enemy:
 
     def _update_fall(self, frame_time):
         self._fall_elapsed += frame_time
+        ratio = max(0.0, 1.0 - self._fall_elapsed / self._fall_decay)
+        self.vx = self._fall_blast_vx * ratio
         self.vy += GRAVITY * frame_time
         self.x += self.vx * frame_time
         self.y += self.vy * frame_time
