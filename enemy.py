@@ -36,6 +36,10 @@ class Enemy:
         self._fall_elapsed = 0.0
         self._fall_blast_vx = 0.0
         self._fall_decay = sprite.BLAST_DECAY
+        self._below_threshold = False
+        self._fade_elapsed = 0.0
+        tiles = game_world.get_tiles()
+        self._fade_threshold_y = min((t.surface_y for t in tiles), default=0.0)
 
     def receive_blast(self, vx, vy):
         if self.state == FALL:
@@ -45,6 +49,8 @@ class Enemy:
             self.vy = vy
             self._fall_blast_vx = vx
             self._fall_decay = sprite.BLAST_DECAY * sprite.COLLAPSED_DECAY_MULT
+            self._below_threshold = False
+            self._fade_elapsed = 0.0
             self.state = FALL
             self.frame = 0.0
             self._fall_elapsed = 0.0
@@ -95,8 +101,31 @@ class Enemy:
         ratio = max(0.0, 1.0 - self._fall_elapsed / self._fall_decay)
         self.vx = self._fall_blast_vx * ratio
         self.vy += GRAVITY * frame_time
+        prev_y = self.y
         self.x += self.vx * frame_time
         self.y += self.vy * frame_time
+        prev_feet = prev_y - HALF_H
+        curr_feet = self.y - HALF_H
+        for tile in game_world.get_tiles():
+            if self.x + ENEMY_HALF_W <= tile.left_x or self.x - ENEMY_HALF_W >= tile.right_x:
+                continue
+            if prev_feet >= tile.surface_y and curr_feet <= tile.surface_y:
+                self.y = tile.surface_y + HALF_H
+                self.vy = 0.0
+                self.vx = 0.0
+                self._fall_blast_vx = 0.0
+                self._below_threshold = False
+                self._fade_elapsed = 0.0
+                self.state = COLLAPSE
+                self.frame = 0.0
+                self._collapse_elapsed = 0.0
+                self._reviving = False
+                return
+        if not self._below_threshold and self.y < self._fade_threshold_y:
+            self._below_threshold = True
+            self._fade_elapsed = 0.0
+        if self._below_threshold:
+            self._fade_elapsed += frame_time
         fall_frames = sprite.SHEETS['enemy_fall'][1]
         t = min(self._fall_elapsed / FALL_DURATION, 1.0)
         self.frame = t * (fall_frames - 1)
@@ -129,12 +158,16 @@ class Enemy:
                               self.x + camera.ox + shake_x, draw_y + shake_y, self.flip)
         elif self.state == FALL:
             path, _ = sprite.SHEETS['enemy_fall']
-            t = min(self._fall_elapsed / FALL_DURATION, 1.0)
-            scale = FALL_SCALE_START + (FALL_SCALE_END - FALL_SCALE_START) * t
-            out_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * scale)
-            out_h = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * scale)
-            img = sprite.load(path)
-            left = int(self.frame) * sprite.PLAYER_FRAME
-            img.clip_composite_draw(left, 0, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-                                    0, 'h' if self.flip else '',
-                                    self.x + camera.ox, draw_y, out_w, out_h)
+            if self._below_threshold:
+                t = min(self._fade_elapsed / FALL_DURATION, 1.0)
+                scale = FALL_SCALE_START + (FALL_SCALE_END - FALL_SCALE_START) * t
+                out_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * scale)
+                out_h = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * scale)
+                img = sprite.load(path)
+                left = int(self.frame) * sprite.PLAYER_FRAME
+                img.clip_composite_draw(left, 0, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
+                                        0, 'h' if self.flip else '',
+                                        self.x + camera.ox, draw_y, out_w, out_h)
+            else:
+                sprite.draw_frame(path, int(self.frame), sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
+                                  self.x + camera.ox, draw_y, self.flip)
