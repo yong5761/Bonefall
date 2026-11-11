@@ -17,9 +17,10 @@ class Explosion:
         self._apply_knockback()
 
     def _apply_knockback(self):
-        for p in game_world.get_players():
-            dx = p.x - self.x
-            dy = p.y - self.y
+        targets = game_world.get_players() + game_world.get_enemies()
+        for t in targets:
+            dx = t.x - self.x
+            dy = t.y - self.y
             dist = (dx * dx + dy * dy) ** 0.5
             if dist > RADIUS:
                 continue
@@ -29,7 +30,7 @@ class Explosion:
                 nx, ny = dx / dist, dy / dist
             if self.blast_type == 1:
                 nx, ny = -nx, -ny
-            p.receive_blast(nx * sprite.BLAST_SPEED_SRC * sprite.DRAW_SCALE,
+            t.receive_blast(nx * sprite.BLAST_SPEED_SRC * sprite.DRAW_SCALE,
                             ny * sprite.BLAST_SPEED_SRC * sprite.DRAW_SCALE)
 
     def update(self, frame_time):
