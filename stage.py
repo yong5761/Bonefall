@@ -1,38 +1,51 @@
 from tile import Tile
 from enemy import Enemy
 
+_PLAYER_STARTS = [
+    (400, 420),
+    (240, 420),
+    (240, 420),
+]
 
-def build_stage():
-    tiles = []
+_STAGES = [
+    [
+        (0,1,0),(1,1,1),(2,1,1),(3,1,1),(4,1,1),(5,1,2),
+        (7,1,0),(8,1,1),(9,1,2),
+        (0,2,0),(1,2,1),(2,2,2),
+        (9,2,4),(10,2,5),(11,2,6),
+        (4,4,0),(5,4,1),(6,4,1),(7,4,2),
+    ],
+    [
+        (0,1,0),(1,1,1),(2,1,1),(3,1,1),(4,1,1),(5,1,1),
+        (6,1,1),(7,1,1),(8,1,1),(9,1,1),(10,1,1),(11,1,2),
+        (0,2,0),(1,2,1),(2,2,2),
+        (9,2,0),(10,2,1),(11,2,2),
+        (3,3,0),(4,3,1),(5,3,1),(6,3,1),(7,3,1),(8,3,2),
+    ],
+    [
+        (0,1,0),(1,1,1),(2,1,1),(3,1,2),
+        (4,1,4),(5,1,5),(6,1,5),(7,1,6),
+        (8,1,0),(9,1,1),(10,1,1),(11,1,2),
+        (0,3,0),(1,3,1),(2,3,2),
+        (9,2,0),(10,2,1),(11,2,2),
+        (5,4,4),(6,4,5),(7,4,6),
+    ],
+]
 
-    tiles.append(Tile(0, 1, 0))
-    for col in range(1, 5):
-        tiles.append(Tile(col, 1, 1))
-    tiles.append(Tile(5, 1, 2))
-
-    tiles.append(Tile(7, 1, 0))
-    tiles.append(Tile(8, 1, 1))
-    tiles.append(Tile(9, 1, 2))
-
-    tiles.append(Tile(0, 2, 0))
-    tiles.append(Tile(1, 2, 1))
-    tiles.append(Tile(2, 2, 2))
-
-    tiles.append(Tile(9, 2, 4))
-    tiles.append(Tile(10, 2, 5))
-    tiles.append(Tile(11, 2, 6))
-
-    tiles.append(Tile(4, 4, 0))
-    tiles.append(Tile(5, 4, 1))
-    tiles.append(Tile(6, 4, 1))
-    tiles.append(Tile(7, 4, 2))
-
-    return tiles
+_ENEMY_STARTS = [
+    [(720, 420), (1300, 420), (960, 900)],
+    [(640, 740), (880, 740), (1200, 740)],
+    [(1360, 420), (1520, 420), (1840, 420), (1680, 580)],
+]
 
 
-def build_enemies():
-    return [
-        Enemy(720, 420),
-        Enemy(1300, 420),
-        Enemy(960, 900),
-    ]
+def get_player_start(idx):
+    return _PLAYER_STARTS[idx]
+
+
+def build_stage(idx=0):
+    return [Tile(gx, gy, ti) for gx, gy, ti in _STAGES[idx]]
+
+
+def build_enemies(idx=0):
+    return [Enemy(x, y) for x, y in _ENEMY_STARTS[idx]]

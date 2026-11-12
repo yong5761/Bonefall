@@ -38,6 +38,7 @@ class Player:
         self._blast_vx = 0.0
         self._blast_elapsed = 0.0
         self._control_vx = 0.0
+        self.died = False
 
     def handle_event(self, event):
         if event.type == pico2d.SDL_KEYDOWN:
@@ -251,6 +252,7 @@ class Player:
         self.vy = 0.0
         self.state = IDLE
         self.frame = 0.0
+        self.died = True
 
     def draw(self):
         path, _ = sprite.SHEETS[_STATE_SHEET[self.state]]
