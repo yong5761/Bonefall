@@ -7,16 +7,38 @@ import bomb
 from player import Player
 
 
+def _load_stage(idx, player):
+    bomb.remove_active()
+    game_world.clear()
+    for tile in stage.build_stage(idx):
+        game_world.add(tile)
+    game_world.set_player(player)
+    for e in stage.build_enemies(idx):
+        game_world.add(e)
+    sx, sy = stage.get_player_start(idx)
+    player.x = float(sx)
+    player.y = float(sy)
+    player.start_x = float(sx)
+    player.start_y = float(sy)
+    player.vx = 0.0
+    player.vy = 0.0
+    player.state = 0
+    player.frame = 0.0
+    player._control_vx = 0.0
+    player.died = False
+
+
 def main():
     pico2d.open_canvas(1920, 1080, full=True)
 
-    for tile in stage.build_stage():
-        game_world.add(tile)
-
-    player = Player(400, 420)
+    stage_idx = 0
+    sx, sy = stage.get_player_start(stage_idx)
+    player = Player(sx, sy)
     game_world.set_player(player)
 
-    for e in stage.build_enemies():
+    for tile in stage.build_stage(stage_idx):
+        game_world.add(tile)
+    for e in stage.build_enemies(stage_idx):
         game_world.add(e)
 
     prev_ticks = pico2d.SDL_GetTicks()
@@ -47,15 +69,11 @@ def main():
         player.update(frame_time, keys)
         game_world.update(frame_time)
 
-        if not game_world.get_enemies():
-            bomb.remove_active()
-            game_world.clear()
-            for tile in stage.build_stage():
-                game_world.add(tile)
-            game_world.set_player(player)
-            for e in stage.build_enemies():
-                game_world.add(e)
-            player._reset()
+        if player.died:
+            _load_stage(stage_idx, player)
+        elif not game_world.get_enemies():
+            stage_idx = (stage_idx + 1) % 3
+            _load_stage(stage_idx, player)
 
         pico2d.draw_rectangle(0, 0, 1920, 1080, r=43, g=58, b=74, a=255, filled=True)
         game_world.draw()
