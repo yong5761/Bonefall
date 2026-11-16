@@ -1,6 +1,7 @@
 import pico2d
 import game_framework
 import camera
+import save_data
 import game_world
 import stage
 import sprite
@@ -68,6 +69,7 @@ def update():
     if _player.died:
         _load_stage(_stage_idx)
     elif not game_world.get_enemies():
+        save_data.save(_stage_idx + 1)
         _load_stage((_stage_idx + 1) % 3)
 
 
