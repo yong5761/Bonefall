@@ -92,6 +92,8 @@ def handle_events():
                 game_framework.change_mode(menu_mode)
             elif event.key == pico2d.SDLK_f:
                 camera.shake(14, 0.35)
+            elif event.key in (pico2d.SDLK_1, pico2d.SDLK_2, pico2d.SDLK_3):
+                _load_stage(event.key - pico2d.SDLK_1)
             elif event.key in (pico2d.SDLK_LSHIFT, pico2d.SDLK_RSHIFT):
                 bomb.toggle_type()
             _player.handle_event(event)
