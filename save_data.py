@@ -22,11 +22,16 @@ def load():
 
 def save(cleared):
     global _cleared
-    if cleared <= _cleared:
+    try:
+        with open(_SAVE_PATH, 'r') as f:
+            existing = json.load(f).get('cleared', 0)
+    except Exception:
+        existing = 0
+    _cleared = max(existing, cleared)
+    if cleared <= existing:
         return
-    _cleared = cleared
     try:
         with open(_SAVE_PATH, 'w') as f:
-            json.dump({'cleared': _cleared}, f)
+            json.dump({'cleared': cleared}, f)
     except Exception:
         pass

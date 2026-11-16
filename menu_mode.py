@@ -1,6 +1,7 @@
 import pico2d
 import game_framework
 import save_data
+import stage
 
 _bg = None
 _items = None
@@ -67,7 +68,7 @@ def _execute():
         play_mode.start_stage = 0
         game_framework.change_mode(play_mode)
     elif _sel == 1:
-        play_mode.start_stage = save_data.load() % 3
+        play_mode.start_stage = min(save_data.load(), stage.STAGE_COUNT - 1)
         game_framework.change_mode(play_mode)
     elif _sel == 2:
         pass

@@ -38,6 +38,8 @@ _ENEMY_STARTS = [
     [(1360, 420), (1520, 420), (1840, 420), (1680, 580)],
 ]
 
+STAGE_COUNT = len(_STAGES)
+
 
 def get_player_start(idx):
     return _PLAYER_STARTS[idx]
