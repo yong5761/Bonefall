@@ -15,6 +15,7 @@ PLAYER_FRAME = 100
 AIR_CONTROL_RATIO = 0.5
 COLLAPSED_DECAY_MULT = 2.0
 WEAK_BREAK_TIME = 1.2
+BG_SCALE = 1.03
 
 SHEETS = {
     'player_idle':      ('assets/player_idle.png',      16),
