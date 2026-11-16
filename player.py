@@ -59,7 +59,12 @@ class Player:
         self._blast_elapsed = 0.0
         self.state = BLAST
         self.frame = 0.0
-        camera.shake(20, sprite.BLAST_DECAY)
+        spd = (vx * vx + vy * vy) ** 0.5
+        if spd < 1.0:
+            sdx, sdy = 0.0, 1.0
+        else:
+            sdx, sdy = vx / spd, vy / spd
+        camera.shake(20, sprite.BLAST_DECAY, sdx, sdy)
 
     def update(self, frame_time, keys):
         if self.state == PLANT:

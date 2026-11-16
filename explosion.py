@@ -13,7 +13,16 @@ class Explosion:
         self.y = float(y)
         self.blast_type = blast_type
         self.elapsed = 0.0
-        camera.shake(14, 0.35)
+        sdx = 960.0 - x
+        sdy = 540.0 - y
+        dist = (sdx * sdx + sdy * sdy) ** 0.5
+        if dist < 1.0:
+            sdx, sdy = 0.0, 1.0
+        else:
+            sdx /= dist
+            sdy /= dist
+        camera.shake(14, 0.35, sdx, sdy)
+        camera.hitstop(sprite.HITSTOP_TIME)
         self._apply_knockback()
 
     def _apply_knockback(self):
