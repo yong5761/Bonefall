@@ -17,6 +17,8 @@ AIR_CONTROL_RATIO = 0.5
 COLLAPSED_DECAY_MULT = 2.0
 WEAK_BREAK_TIME = 1.2
 BG_SCALE = 1.03
+FLASH_TIME = 0.08
+FLASH_ALPHA = 200
 
 SHEETS = {
     'player_idle':      ('assets/player_idle.png',      16),

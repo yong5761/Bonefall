@@ -23,6 +23,8 @@ class Explosion:
             sdy /= dist
         camera.shake(14, 0.35, sdx, sdy)
         camera.hitstop(sprite.HITSTOP_TIME)
+        import fx
+        fx.trigger_flash()
         self._apply_knockback()
 
     def _apply_knockback(self):

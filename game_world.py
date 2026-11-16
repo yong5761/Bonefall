@@ -42,3 +42,41 @@ def get_tiles():
 def get_enemies():
     from enemy import Enemy
     return [obj for obj in _objects if isinstance(obj, Enemy)]
+
+
+def get_bombs():
+    from bomb import Bomb
+    return [obj for obj in _objects if isinstance(obj, Bomb)]
+
+
+def get_explosions():
+    from explosion import Explosion
+    return [obj for obj in _objects if isinstance(obj, Explosion)]
+
+
+def draw_tiles():
+    from tile import Tile
+    for obj in _objects:
+        if isinstance(obj, Tile):
+            obj.draw()
+
+
+def draw_enemies():
+    from enemy import Enemy
+    for obj in _objects:
+        if isinstance(obj, Enemy):
+            obj.draw()
+
+
+def draw_bombs():
+    from bomb import Bomb
+    for obj in _objects:
+        if isinstance(obj, Bomb):
+            obj.draw()
+
+
+def draw_explosions():
+    from explosion import Explosion
+    for obj in _objects:
+        if isinstance(obj, Explosion):
+            obj.draw()

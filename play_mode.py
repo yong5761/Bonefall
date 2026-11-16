@@ -7,6 +7,7 @@ import stage
 import sprite
 import bomb
 import background
+import fx
 from player import Player
 
 start_stage = 0
@@ -63,6 +64,7 @@ def update():
     _prev_ticks = ticks
 
     camera.update(frame_time)
+    fx.update(frame_time)
     if camera.is_hitstop():
         return
     _player.update(frame_time, _keys)
@@ -77,8 +79,16 @@ def update():
 
 def render():
     background.draw()
-    game_world.draw()
+    fx.draw_all_shadows()
+    game_world.draw_tiles()
+    game_world.draw_enemies()
+    game_world.draw_bombs()
+    fx.draw_bomb_fuse_lights()
     _player.draw()
+    game_world.draw_explosions()
+    fx.draw_explosion_lights()
+    fx.draw_vignette()
+    fx.draw_flash()
     hud_frame = bomb.get_type() * 2
     hud_path, _ = sprite.SHEETS['bombs']
     sprite.draw_frame(hud_path, hud_frame, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME, 100, 980)
