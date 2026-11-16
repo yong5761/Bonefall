@@ -79,8 +79,8 @@ def update():
 
 def render():
     background.draw()
-    fx.draw_all_shadows()
     game_world.draw_tiles()
+    fx.draw_all_shadows()
     game_world.draw_enemies()
     game_world.draw_bombs()
     fx.draw_bomb_fuse_lights()

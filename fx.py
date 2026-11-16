@@ -9,6 +9,8 @@ _LIGHT_PATH = 'assets/light.png'
 
 _PLAYER_FOOT_HW = int(sprite.FOOT_HALF_W_SRC * sprite.DRAW_SCALE)
 _BASE_SHADOW_W = _PLAYER_FOOT_HW * 2 * 2.2
+_ENTITY_HALF_H = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
+_BOMB_HALF_H = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 4
 
 _flash_elapsed = 0.0
 _flash_duration = 0.0
@@ -37,11 +39,11 @@ def _find_surface(entity_x, entity_y, search_hw):
     return best
 
 
-def _draw_shadow(entity_x, entity_y, search_hw, size_mult=1.0):
+def _draw_shadow(entity_x, entity_y, search_hw, half_h, size_mult=1.0):
     surf_y = _find_surface(entity_x, entity_y, search_hw)
     if surf_y is None:
         return
-    h = entity_y - surf_y
+    h = max(0, (entity_y - half_h) - surf_y)
     if h > 400:
         return
     t = min(h / 400.0, 1.0)
@@ -59,11 +61,11 @@ def _draw_shadow(entity_x, entity_y, search_hw, size_mult=1.0):
 def draw_all_shadows():
     from bomb import BOMB_HALF
     for player in game_world.get_players():
-        _draw_shadow(player.x, player.y, _PLAYER_FOOT_HW)
+        _draw_shadow(player.x, player.y, _PLAYER_FOOT_HW, _ENTITY_HALF_H)
     for enemy in game_world.get_enemies():
-        _draw_shadow(enemy.x, enemy.y, _PLAYER_FOOT_HW)
+        _draw_shadow(enemy.x, enemy.y, _PLAYER_FOOT_HW, _ENTITY_HALF_H)
     for b in game_world.get_bombs():
-        _draw_shadow(b.x, b.y, BOMB_HALF, 0.6)
+        _draw_shadow(b.x, b.y, BOMB_HALF, _BOMB_HALF_H, 0.6)
 
 
 def draw_bomb_fuse_lights():
