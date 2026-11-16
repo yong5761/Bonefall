@@ -49,5 +49,9 @@ def build_stage(idx=0):
     return [Tile(gx, gy, ti) for gx, gy, ti in _STAGES[idx]]
 
 
+def get_stage_data(idx):
+    return _STAGES[idx], _ENEMY_STARTS[idx]
+
+
 def build_enemies(idx=0):
     return [Enemy(x, y) for x, y in _ENEMY_STARTS[idx]]

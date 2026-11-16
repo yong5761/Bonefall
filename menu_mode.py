@@ -62,6 +62,14 @@ def handle_events():
                 _execute()
 
 
+def pause():
+    pass
+
+
+def resume():
+    pass
+
+
 def _execute():
     import play_mode
     if _sel == 0:
@@ -71,6 +79,7 @@ def _execute():
         play_mode.start_stage = min(save_data.load(), stage.STAGE_COUNT - 1)
         game_framework.change_mode(play_mode)
     elif _sel == 2:
-        pass
+        import stage_select_mode
+        game_framework.push_mode(stage_select_mode)
     elif _sel == 3:
         game_framework.quit()
