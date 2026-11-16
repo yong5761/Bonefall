@@ -3,9 +3,8 @@ import camera
 import game_world
 
 BOMB_HALF = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 4
-PLAYER_HALF_H = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
 GRAVITY = -2000.0
-FUSE_TIME = 1.5
+FUSE_TIME = 1.0
 BODY_FPS = 4
 
 FALLING = 0
@@ -24,10 +23,12 @@ def toggle_type():
     _current_type = 1 - _current_type
 
 
-def place(x, y):
+def throw(x, y, flip):
     global _active
     if _active is None:
-        b = Bomb(x, y - PLAYER_HALF_H + BOMB_HALF, _current_type)
+        vx = -(sprite.THROW_SPEED_SRC * sprite.DRAW_SCALE) if flip else (sprite.THROW_SPEED_SRC * sprite.DRAW_SCALE)
+        vy = sprite.THROW_VY_SRC * sprite.DRAW_SCALE
+        b = Bomb(x, y, _current_type, vx, vy)
         _active = b
         game_world.add(b)
 
@@ -37,11 +38,19 @@ def _clear_active():
     _active = None
 
 
+def remove_active():
+    global _active
+    if _active is not None:
+        game_world.remove(_active)
+    _clear_active()
+
+
 class Bomb:
-    def __init__(self, x, y, bomb_type):
+    def __init__(self, x, y, bomb_type, vx=0.0, vy=0.0):
         self.x = float(x)
         self.y = float(y)
-        self.vy = 0.0
+        self.vx = float(vx)
+        self.vy = float(vy)
         self.bomb_type = bomb_type
         self.state = FALLING
         self.fuse = 0.0
@@ -49,26 +58,33 @@ class Bomb:
 
     def update(self, frame_time):
         self.body_frame = (self.body_frame + BODY_FPS * frame_time) % 2.0
+        self.fuse += frame_time
+
+        if self.fuse >= FUSE_TIME:
+            import explosion
+            game_world.add(explosion.Explosion(self.x, self.y, self.bomb_type))
+            _clear_active()
+            game_world.remove(self)
+            return
 
         if self.state == FALLING:
+            if self.y < -300:
+                _clear_active()
+                game_world.remove(self)
+                return
             if self._on_ground():
                 self._snap_to_ground()
                 self.state = LANDED
+                self.vx = 0.0
                 self.vy = 0.0
                 return
             self.vy += GRAVITY * frame_time
+            self.x += self.vx * frame_time
             prev_y = self.y
             self.y += self.vy * frame_time
             if self.vy <= 0 and self._try_land(prev_y):
                 self.state = LANDED
-
-        elif self.state == LANDED:
-            self.fuse += frame_time
-            if self.fuse >= FUSE_TIME:
-                import explosion
-                game_world.add(explosion.Explosion(self.x, self.y, self.bomb_type))
-                _clear_active()
-                game_world.remove(self)
+                self.vx = 0.0
 
     def _on_ground(self):
         feet_y = self.y - BOMB_HALF
@@ -106,9 +122,8 @@ class Bomb:
         path, _ = sprite.SHEETS['bombs']
         sprite.draw_frame(path, body_frame, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
                           self.x + camera.ox, self.y + camera.oy)
-        if self.state == LANDED:
-            fuse_key = 'bomb_pull_fuse' if self.bomb_type == 1 else 'bomb_push_fuse'
-            fuse_path, fuse_count = sprite.SHEETS[fuse_key]
-            fuse_frame = int(min(self.fuse / FUSE_TIME * fuse_count, fuse_count - 1))
-            sprite.draw_frame(fuse_path, fuse_frame, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-                               self.x + camera.ox, self.y + camera.oy)
+        fuse_key = 'bomb_pull_fuse' if self.bomb_type == 1 else 'bomb_push_fuse'
+        fuse_path, fuse_count = sprite.SHEETS[fuse_key]
+        fuse_frame = int(min(self.fuse / FUSE_TIME * fuse_count, fuse_count - 1))
+        sprite.draw_frame(fuse_path, fuse_frame, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
+                          self.x + camera.ox, self.y + camera.oy)
