@@ -63,9 +63,11 @@ def handle_events():
     for event in pico2d.get_events():
         if event.type == pico2d.SDL_QUIT:
             game_framework.quit()
+            return
         elif event.type == pico2d.SDL_KEYDOWN:
             if event.key == pico2d.SDLK_ESCAPE:
                 game_framework.pop_mode()
+                return
             elif event.key == pico2d.SDLK_LEFT:
                 _sel = (_sel - 1) % stage.STAGE_COUNT
             elif event.key == pico2d.SDLK_RIGHT:
@@ -74,6 +76,7 @@ def handle_events():
                 import play_mode
                 play_mode.start_stage = _sel
                 game_framework.change_mode(play_mode)
+                return
 
 
 def render():

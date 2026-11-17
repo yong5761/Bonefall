@@ -46,8 +46,11 @@ def handle_events():
     for event in pico2d.get_events():
         if event.type == pico2d.SDL_QUIT:
             game_framework.quit()
+            return
         elif event.type == pico2d.SDL_KEYDOWN:
             if event.key == pico2d.SDLK_ESCAPE:
                 game_framework.quit()
+                return
             elif event.key == pico2d.SDLK_RETURN:
                 game_framework.change_mode(menu_mode)
+                return

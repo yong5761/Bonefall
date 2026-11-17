@@ -100,10 +100,12 @@ def handle_events():
     for event in pico2d.get_events():
         if event.type == pico2d.SDL_QUIT:
             game_framework.quit()
+            return
         elif event.type == pico2d.SDL_KEYDOWN:
             _keys.add(event.key)
             if event.key == pico2d.SDLK_ESCAPE:
                 game_framework.change_mode(menu_mode)
+                return
             elif event.key == pico2d.SDLK_f:
                 camera.shake(14, 0.35, 1.0, 0.0)
             elif event.key in (pico2d.SDLK_1, pico2d.SDLK_2, pico2d.SDLK_3):
