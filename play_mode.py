@@ -21,6 +21,7 @@ _keys = None
 def _load_stage(idx):
     global _stage_idx
     _stage_idx = idx
+    background.set_stage(idx)
     bomb.remove_active()
     game_world.clear()
     for tile in stage.build_stage(idx):
