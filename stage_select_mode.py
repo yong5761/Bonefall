@@ -73,7 +73,6 @@ def handle_events():
             elif event.key == pico2d.SDLK_RETURN:
                 import play_mode
                 play_mode.start_stage = _sel
-                game_framework.pop_mode()
                 game_framework.change_mode(play_mode)
 
 
