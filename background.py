@@ -4,6 +4,16 @@ import camera
 _BG_PATH = 'assets/background_loop.png'
 _DARK_PATH = 'assets/darkness_overlay.png'
 
+_BG_PATHS = [
+    'assets/background_loop.png',
+    'assets/background_loop.png',
+    'assets/background_loop.png',
+]
+
+
+def get_bg_image(idx):
+    return sprite.load(_BG_PATHS[idx])
+
 
 def draw():
     out_w = int(1920 * sprite.BG_SCALE)

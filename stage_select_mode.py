@@ -3,6 +3,8 @@ import pico2d
 import game_framework
 import stage
 import save_data
+import background
+import sprite
 
 _CARD_W = 480
 _CARD_H = 320
@@ -14,10 +16,6 @@ _MAP_SCALE = _MAP_W / 1920.0
 _MAP_TOP_MARGIN = 20
 _SEL_SCALE = 1.06
 
-_NORMAL_TILE = (0x7A, 0x8C, 0x99)
-_WEAK_TILE = (0x9A, 0x84, 0x70)
-_ENEMY_DOT = (0xEC, 0xE8, 0xE1)
-_MAP_BG = (0x1C, 0x27, 0x33)
 _BORDER_NORMAL = (0x4F, 0x5D, 0x68)
 _BORDER_SEL = (0xE0, 0x89, 0x3A)
 _CHECK = (0x7F, 0xC2, 0x8A)
@@ -117,24 +115,51 @@ def _draw_card(i, cleared):
     map_top_y = top - _MAP_TOP_MARGIN * sc
     map_bottom_y = map_top_y - map_h
 
-    pico2d.draw_rectangle(int(map_left), int(map_bottom_y), int(map_right), int(map_top_y),
-                          _MAP_BG[0], _MAP_BG[1], _MAP_BG[2], 255, filled=True)
+    map_cx = (map_left + map_right) / 2
+    map_cy = (map_bottom_y + map_top_y) / 2
+    background.get_bg_image(i).clip_composite_draw(
+        0, 0, 1920, 1080, 0, '',
+        int(map_cx), int(map_cy), int(map_w), int(map_h))
 
-    tile_sz = 160 * _MAP_SCALE * sc
+    pico2d.SDL_SetRenderDrawBlendMode(pico2d.pico2d.renderer, pico2d.SDL_BLENDMODE_BLEND)
+    pico2d.draw_rectangle(int(map_left), int(map_bottom_y), int(map_right), int(map_top_y),
+                          0, 0, 0, 90, filled=True)
+    pico2d.SDL_SetRenderDrawBlendMode(pico2d.pico2d.renderer, pico2d.SDL_BLENDMODE_NONE)
+
+    tile_sz = int(160 * _MAP_SCALE * sc)
+    tile_img = sprite.load(sprite.SHEETS['tiles'][0])
     tiles, enemies = _stage_data[i]
     for gx, gy, ti in tiles:
-        tx = map_left + gx * 160 * _MAP_SCALE * sc
-        ty = map_bottom_y + gy * 160 * _MAP_SCALE * sc
-        col = _WEAK_TILE if ti >= 4 else _NORMAL_TILE
-        pico2d.draw_rectangle(int(tx), int(ty), int(tx + tile_sz), int(ty + tile_sz),
-                              col[0], col[1], col[2], 255, filled=True)
+        tcx = map_left + (gx + 0.5) * 160 * _MAP_SCALE * sc
+        tcy = map_bottom_y + (gy + 0.5) * 160 * _MAP_SCALE * sc
+        half = tile_sz / 2
+        if (tcx - half < map_left or tcx + half > map_right or
+                tcy - half < map_bottom_y or tcy + half > map_top_y):
+            continue
+        tile_img.clip_composite_draw(ti * 80, 0, 80, 80, 0, '',
+                                     int(tcx), int(tcy), tile_sz, tile_sz)
 
-    dot_r = 5.0 * sc
+    spr_sz = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * _MAP_SCALE * sc)
+    enemy_img = sprite.load(sprite.SHEETS['enemy_walk'][0])
     for ex, ey in enemies:
-        mx = map_left + ex * _MAP_SCALE * sc
-        my = map_bottom_y + ey * _MAP_SCALE * sc
-        pico2d.draw_circle(int(mx), int(my), int(dot_r),
-                           _ENEMY_DOT[0], _ENEMY_DOT[1], _ENEMY_DOT[2], 255, filled=True)
+        ecx = map_left + ex * _MAP_SCALE * sc
+        ecy = map_bottom_y + ey * _MAP_SCALE * sc
+        half = spr_sz / 2
+        if (ecx - half < map_left or ecx + half > map_right or
+                ecy - half < map_bottom_y or ecy + half > map_top_y):
+            continue
+        enemy_img.clip_composite_draw(0, 0, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME, 0, '',
+                                      int(ecx), int(ecy), spr_sz, spr_sz)
+
+    ps_x, ps_y = stage.get_player_start(i)
+    pcx = map_left + ps_x * _MAP_SCALE * sc
+    pcy = map_bottom_y + ps_y * _MAP_SCALE * sc
+    half = spr_sz / 2
+    if not (pcx - half < map_left or pcx + half > map_right or
+            pcy - half < map_bottom_y or pcy + half > map_top_y):
+        sprite.load(sprite.SHEETS['player_idle'][0]).clip_composite_draw(
+            0, 0, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME, 0, '',
+            int(pcx), int(pcy), spr_sz, spr_sz)
 
     if not is_sel:
         pico2d.SDL_SetRenderDrawBlendMode(pico2d.pico2d.renderer, pico2d.SDL_BLENDMODE_BLEND)
