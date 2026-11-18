@@ -107,7 +107,7 @@ def render():
 def _draw_hud():
     bomb_img = sprite.load('assets/ui_bomb_push.png' if bomb.get_type() == 0
                            else 'assets/ui_bomb_pull.png')
-    bomb_img.draw(90, 990)
+    bomb_img.draw(90, 1005)
     sprite.load('assets/ui_icon_ring.png').draw(90, 990)
     sprite.load('assets/ui_panel.png').draw(250, 990)
     sprite.load('assets/ui_panel.png').draw(1830, 990)
