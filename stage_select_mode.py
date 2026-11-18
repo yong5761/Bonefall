@@ -6,15 +6,14 @@ import save_data
 import background
 import sprite
 
-_CARD_W = 480
-_CARD_H = 320
-_CARD_CY = 540
-_CARD_CX = [420, 960, 1500]
-_MAP_W = 440
-_MAP_H = 248
+_CARD_W = 400
+_CARD_H = 290
+_MAP_W = 360
+_MAP_H = 202
 _MAP_SCALE = _MAP_W / 1920.0
-_MAP_TOP_MARGIN = 20
+_MAP_TOP_MARGIN = 16
 _SEL_SCALE = 1.06
+_PER_PAGE = 8
 
 _BORDER_NORMAL = (0x4F, 0x5D, 0x68)
 _BORDER_SEL = (0xE0, 0x89, 0x3A)
@@ -47,9 +46,9 @@ def init():
 
 def finish():
     global _bg, _font_label, _font_hint
-    del _bg
-    del _font_label
-    del _font_hint
+    _bg = None
+    _font_label = None
+    _font_hint = None
 
 
 def update():
@@ -70,6 +69,14 @@ def handle_events():
                 _sel = (_sel - 1) % stage.STAGE_COUNT
             elif event.key == pico2d.SDLK_RIGHT:
                 _sel = (_sel + 1) % stage.STAGE_COUNT
+            elif event.key == pico2d.SDLK_UP:
+                local_row = (_sel % _PER_PAGE) // 4
+                if local_row > 0:
+                    _sel -= 4
+            elif event.key == pico2d.SDLK_DOWN:
+                local_row = (_sel % _PER_PAGE) // 4
+                if local_row < 1 and _sel + 4 < stage.STAGE_COUNT:
+                    _sel += 4
             elif event.key == pico2d.SDLK_RETURN:
                 import play_mode
                 play_mode.start_stage = _sel
@@ -80,17 +87,27 @@ def handle_events():
 def render():
     _bg.draw(960, 540)
     cleared = save_data.load()
-    for i in range(stage.STAGE_COUNT):
-        _draw_card(i, cleared)
-    _centered_text(_font_hint, 960, 120,
-                   '\u2190  \u2192   \uc120\ud0dd       ENTER  \uc2dc\uc791       ESC  \ub4a4\ub85c',
+    total_pages = (stage.STAGE_COUNT + _PER_PAGE - 1) // _PER_PAGE
+    page = _sel // _PER_PAGE
+    start = page * _PER_PAGE
+    end = min(start + _PER_PAGE, stage.STAGE_COUNT)
+    for i in range(start, end):
+        _draw_card(i, i - start, cleared)
+    _centered_text(_font_hint, 960, 150,
+                   '\u2190 \u2192 \u2191 \u2193  \uc120\ud0dd      ENTER  \uc2dc\uc791      ESC  \ub4a4\ub85c',
                    _HINT_COLOR)
+    if total_pages > 1:
+        _centered_text(_font_hint, 960, 90,
+                       f'{page + 1} / {total_pages}', _HINT_COLOR)
     pico2d.update_canvas()
 
 
-def _draw_card(i, cleared):
-    cx = float(_CARD_CX[i])
-    cy = float(_CARD_CY)
+def _draw_card(stage_idx, local_idx, cleared):
+    i = stage_idx
+    col = local_idx % 4
+    row = local_idx // 4
+    cx = float(300 + col * 440)
+    cy = float(703 - row * 326)
     is_sel = (i == _sel)
     sc = _SEL_SCALE if is_sel else 1.0
 
