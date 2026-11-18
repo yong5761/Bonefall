@@ -25,9 +25,9 @@ def init():
 
 def finish():
     global _bg, _items, _items_sel
-    del _bg
-    del _items
-    del _items_sel
+    _bg = None
+    _items = None
+    _items_sel = None
 
 
 def update():

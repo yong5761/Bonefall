@@ -28,9 +28,9 @@ def init():
 
 def finish():
     global _image, _logo, _font_press
-    del _image
-    del _logo
-    del _font_press
+    _image = None
+    _logo = None
+    _font_press = None
 
 
 def update():
