@@ -11,6 +11,7 @@ import fx
 import ui
 import sound
 import lever
+import transition
 from player import Player
 
 _FONT_PATH = 'assets/fonts/Galmuri11.ttf'
@@ -76,6 +77,15 @@ def update():
     frame_time = min((ticks - _prev_ticks) / 1000.0, 0.05)
     _prev_ticks = ticks
 
+    if transition.update(frame_time):
+        sound.play('stage_clear')
+        save_data.save(_stage_idx + 1)
+        _load_stage((_stage_idx + 1) % stage.STAGE_COUNT)
+        return
+
+    if transition.frozen():
+        return
+
     camera.update(frame_time)
     fx.update(frame_time)
     if camera.is_hitstop():
@@ -85,7 +95,7 @@ def update():
 
     if _player.died:
         _load_stage(_stage_idx)
-    else:
+    elif not transition.active():
         levers = game_world.get_levers()
         enemies_cleared = not game_world.get_enemies()
         if levers:
@@ -93,12 +103,12 @@ def update():
         else:
             stage_done = enemies_cleared
         if stage_done:
-            sound.play('stage_clear')
-            save_data.save(_stage_idx + 1)
-            _load_stage((_stage_idx + 1) % stage.STAGE_COUNT)
+            transition.begin()
 
 
 def render():
+    if transition.active():
+        transition.capture_begin()
     background.draw()
     game_world.draw_tiles()
     game_world.draw_levers()
@@ -112,9 +122,13 @@ def render():
     game_world.draw_explosions()
     fx.draw_debris()
     fx.draw_explosion_lights()
+    fx.draw_lever_lights()
     fx.draw_vignette()
     fx.draw_flash()
     _draw_hud()
+    if transition.active():
+        transition.capture_end()
+        transition.present()
     pico2d.update_canvas()
 
 
@@ -132,13 +146,17 @@ def _draw_hud():
 
 def handle_events():
     import menu_mode
-    for event in pico2d.get_events():
+    events = pico2d.get_events()
+    if transition.active():
+        return
+    for event in events:
         if event.type == pico2d.SDL_QUIT:
             game_framework.quit()
             return
         elif event.type == pico2d.SDL_KEYDOWN:
             _keys.add(event.key)
             if event.key == pico2d.SDLK_ESCAPE:
+                transition.reset()
                 game_framework.change_mode(menu_mode)
                 return
             elif event.key == pico2d.SDLK_f:
@@ -146,12 +164,15 @@ def handle_events():
             elif pico2d.SDLK_1 <= event.key <= pico2d.SDLK_9:
                 idx = event.key - pico2d.SDLK_1
                 if idx < stage.STAGE_COUNT:
+                    transition.reset()
                     _load_stage(idx)
             elif event.key == pico2d.SDLK_PAGEUP:
                 if _stage_idx > 0:
+                    transition.reset()
                     _load_stage(_stage_idx - 1)
             elif event.key == pico2d.SDLK_PAGEDOWN:
                 if _stage_idx + 1 < stage.STAGE_COUNT:
+                    transition.reset()
                     _load_stage(_stage_idx + 1)
             elif event.key in (pico2d.SDLK_LSHIFT, pico2d.SDLK_RSHIFT):
                 bomb.toggle_type()
