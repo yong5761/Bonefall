@@ -75,6 +75,18 @@ def draw_bombs():
             obj.draw()
 
 
+def get_levers():
+    from lever import Lever
+    return [obj for obj in _objects if isinstance(obj, Lever)]
+
+
+def draw_levers():
+    from lever import Lever
+    for obj in _objects:
+        if isinstance(obj, Lever):
+            obj.draw()
+
+
 def draw_explosions():
     from explosion import Explosion
     for obj in _objects:

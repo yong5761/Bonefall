@@ -10,6 +10,7 @@ import background
 import fx
 import ui
 import sound
+import lever
 from player import Player
 
 _FONT_PATH = 'assets/fonts/Galmuri11.ttf'
@@ -34,6 +35,9 @@ def _load_stage(idx):
     game_world.set_player(_player)
     for e in stage.build_enemies(idx):
         game_world.add(e)
+    lv = stage.build_lever(idx)
+    if lv is not None:
+        game_world.add(lv)
     sx, sy = stage.get_player_start(idx)
     _player.x = float(sx)
     _player.y = float(sy)
@@ -81,15 +85,23 @@ def update():
 
     if _player.died:
         _load_stage(_stage_idx)
-    elif not game_world.get_enemies():
-        sound.play('stage_clear')
-        save_data.save(_stage_idx + 1)
-        _load_stage((_stage_idx + 1) % stage.STAGE_COUNT)
+    else:
+        levers = game_world.get_levers()
+        enemies_cleared = not game_world.get_enemies()
+        if levers:
+            stage_done = enemies_cleared and any(lv.state == lever.PULLED for lv in levers)
+        else:
+            stage_done = enemies_cleared
+        if stage_done:
+            sound.play('stage_clear')
+            save_data.save(_stage_idx + 1)
+            _load_stage((_stage_idx + 1) % stage.STAGE_COUNT)
 
 
 def render():
     background.draw()
     game_world.draw_tiles()
+    game_world.draw_levers()
     fx.draw_all_shadows()
     game_world.draw_enemies()
     game_world.draw_bombs()

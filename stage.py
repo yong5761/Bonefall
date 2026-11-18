@@ -14,11 +14,13 @@ _TILE_CHARS = {
 _ENTITY_PREFIXES = {
     'P': 'player',
     'E': 'enemy',
+    'L': 'lever',
 }
 
 _STAGES = []
 _PLAYER_STARTS = []
 _ENEMY_STARTS = []
+_LEVER_STARTS = []
 _BG_NAMES = []
 
 
@@ -65,6 +67,7 @@ def _load_file(path):
             tiles.append((gx, gy, _auto_tile(row, gx, ch)))
 
     player_start = None
+    lever_start = None
     enemies = []
     for li, line in enumerate(lines[1 + _GRID_ROWS:], start=2 + _GRID_ROWS):
         if line.strip() == '':
@@ -88,11 +91,15 @@ def _load_file(path):
             player_start = (x, y)
         elif kind == 'enemy':
             enemies.append((x, y))
+        elif kind == 'lever':
+            if lever_start is not None:
+                sys.exit(f'{fname}:{li}: L: 줄이 둘 이상이다')
+            lever_start = (x, y)
 
     if player_start is None:
         sys.exit(f'{fname}: P: 줄이 없다')
 
-    return bg_name, tiles, player_start, enemies
+    return bg_name, tiles, player_start, enemies, lever_start
 
 
 def _load_all():
@@ -107,11 +114,12 @@ def _load_all():
     if not paths:
         sys.exit('stages/ 폴더에 .txt 파일이 없다')
     for path in paths:
-        bg_name, tiles, player_start, enemies = _load_file(path)
+        bg_name, tiles, player_start, enemies, lever_start = _load_file(path)
         _BG_NAMES.append(bg_name)
         _STAGES.append(tiles)
         _PLAYER_STARTS.append(player_start)
         _ENEMY_STARTS.append(enemies)
+        _LEVER_STARTS.append(lever_start)
 
 
 _load_all()
@@ -137,3 +145,15 @@ def get_stage_data(idx):
 
 def build_enemies(idx=0):
     return [Enemy(x, y) for x, y in _ENEMY_STARTS[idx]]
+
+
+def get_lever_start(idx):
+    return _LEVER_STARTS[idx]
+
+
+def build_lever(idx=0):
+    from lever import Lever
+    pos = _LEVER_STARTS[idx]
+    if pos is None:
+        return None
+    return Lever(pos[0], pos[1])
