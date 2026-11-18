@@ -82,6 +82,7 @@ def update():
     if _player.died:
         _load_stage(_stage_idx)
     elif not game_world.get_enemies():
+        sound.play('stage_clear')
         save_data.save(_stage_idx + 1)
         _load_stage((_stage_idx + 1) % stage.STAGE_COUNT)
 

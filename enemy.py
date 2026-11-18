@@ -145,6 +145,7 @@ class Enemy:
                 self._below_threshold = False
                 self._fade_elapsed = 0.0
                 self._slide_vx = 0.0
+                sound.play('bone_collapse')
                 self.state = COLLAPSE
                 self.frame = 0.0
                 self._collapse_elapsed = 0.0
