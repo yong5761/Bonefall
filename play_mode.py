@@ -1,4 +1,3 @@
-import ctypes
 import pico2d
 import game_framework
 import camera
@@ -9,9 +8,10 @@ import sprite
 import bomb
 import background
 import fx
+import ui
 from player import Player
 
-_FONT_PATH = r'C:\Users\USER\Desktop\Noto_Sans_KR\NotoSansKR-VariableFont_wght.ttf'
+_FONT_PATH = 'assets/fonts/Galmuri11.ttf'
 
 start_stage = 0
 
@@ -49,7 +49,7 @@ def _load_stage(idx):
 
 def init():
     global _player, _prev_ticks, _keys, _hud_font
-    _hud_font = pico2d.load_font(_FONT_PATH, 28)
+    _hud_font = pico2d.load_font(_FONT_PATH, 22)
     _keys = set()
     _prev_ticks = pico2d.SDL_GetTicks()
     sx, sy = stage.get_player_start(start_stage)
@@ -112,11 +112,8 @@ def _draw_hud():
     sprite.load('assets/ui_panel.png').draw(250, 990)
     sprite.load('assets/ui_panel.png').draw(1830, 990)
     color = (0xEC, 0xE8, 0xE1)
-    for text, cx in ((f'적 {len(game_world.get_enemies())}', 250),
-                     (f'STAGE {_stage_idx + 1}', 1830)):
-        w, h = ctypes.c_int(), ctypes.c_int()
-        pico2d.TTF_SizeUTF8(_hud_font.font, text.encode('utf-8'), ctypes.byref(w), ctypes.byref(h))
-        _hud_font.draw(int(cx - w.value // 2), int(990 - h.value // 2), text, color)
+    ui.draw_text_outlined(_hud_font, 250, 990, f'적 {len(game_world.get_enemies())}', color)
+    ui.draw_text_outlined(_hud_font, 1830, 990, f'STAGE {_stage_idx + 1}', color)
 
 
 def handle_events():

@@ -1,10 +1,10 @@
-import ctypes
 import pico2d
 import game_framework
 import stage
 import save_data
 import background
 import sprite
+import ui
 
 _CARD_W = 400
 _CARD_H = 290
@@ -20,7 +20,7 @@ _BORDER_SEL = (0xE0, 0x89, 0x3A)
 _CHECK = (0x7F, 0xC2, 0x8A)
 _HINT_COLOR = (0x94, 0xA5, 0xB4)
 
-_FONT_PATH = r'C:\Users\USER\Desktop\Noto_Sans_KR\NotoSansKR-VariableFont_wght.ttf'
+_FONT_PATH = 'assets/fonts/Galmuri11.ttf'
 
 _bg = None
 _font_label = None
@@ -29,17 +29,11 @@ _sel = 0
 _stage_data = []
 
 
-def _centered_text(font, cx, cy, text, color):
-    w, h = ctypes.c_int(), ctypes.c_int()
-    pico2d.TTF_SizeUTF8(font.font, text.encode('utf-8'), ctypes.byref(w), ctypes.byref(h))
-    font.draw(int(cx - w.value // 2), int(cy - h.value // 2), text, color)
-
-
 def init():
     global _bg, _font_label, _font_hint, _sel, _stage_data
     _bg = pico2d.load_image('assets/menu_bg.png')
-    _font_label = pico2d.load_font(_FONT_PATH, 32)
-    _font_hint = pico2d.load_font(_FONT_PATH, 24)
+    _font_label = pico2d.load_font(_FONT_PATH, 33)
+    _font_hint = pico2d.load_font(_FONT_PATH, 22)
     _sel = 0
     _stage_data = [stage.get_stage_data(i) for i in range(stage.STAGE_COUNT)]
 
@@ -93,11 +87,11 @@ def render():
     end = min(start + _PER_PAGE, stage.STAGE_COUNT)
     for i in range(start, end):
         _draw_card(i, i - start, cleared)
-    _centered_text(_font_hint, 960, 150,
+    ui.draw_text_outlined(_font_hint, 960, 150,
                    '\u2190 \u2192 \u2191 \u2193  \uc120\ud0dd      ENTER  \uc2dc\uc791      ESC  \ub4a4\ub85c',
                    _HINT_COLOR)
     if total_pages > 1:
-        _centered_text(_font_hint, 960, 90,
+        ui.draw_text_outlined(_font_hint, 960, 90,
                        f'{page + 1} / {total_pages}', _HINT_COLOR)
     pico2d.update_canvas()
 
@@ -185,7 +179,7 @@ def _draw_card(stage_idx, local_idx, cleared):
         pico2d.SDL_SetRenderDrawBlendMode(pico2d.pico2d.renderer, pico2d.SDL_BLENDMODE_NONE)
 
     name_cy = int((bottom + map_bottom_y) / 2)
-    _centered_text(_font_label, int(cx), name_cy, f'STAGE {i + 1}', (255, 255, 255))
+    ui.draw_text_outlined(_font_label, int(cx), name_cy, f'STAGE {i + 1}', (255, 255, 255))
 
     if i < cleared:
         cr = 18.0 * sc
