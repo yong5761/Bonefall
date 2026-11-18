@@ -1,4 +1,6 @@
-﻿__pycache__/
+__pycache__/
 *.pyc
 .vscode/
 save.json
+Claude outputs/
+*.bak
