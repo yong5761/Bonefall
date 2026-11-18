@@ -40,6 +40,7 @@ def _load_stage(idx):
     _player.frame = 0.0
     _player._control_vx = 0.0
     _player.died = False
+    fx.clear_particles()
 
 
 def init():
@@ -85,8 +86,11 @@ def render():
     game_world.draw_enemies()
     game_world.draw_bombs()
     fx.draw_bomb_fuse_lights()
+    fx.draw_landing_dust()
+    fx.draw_afterimages()
     _player.draw()
     game_world.draw_explosions()
+    fx.draw_debris()
     fx.draw_explosion_lights()
     fx.draw_vignette()
     fx.draw_flash()

@@ -25,6 +25,7 @@ class Explosion:
         camera.hitstop(sprite.HITSTOP_TIME)
         import fx
         fx.trigger_flash()
+        fx.trigger_debris(self.x, self.y)
         self._apply_knockback()
 
     def _apply_knockback(self):
