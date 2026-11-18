@@ -52,6 +52,7 @@ class Enemy:
             self.vy = vy
             self._fall_blast_vx = vx
             self._fall_decay = sprite.BLAST_DECAY * sprite.COLLAPSED_DECAY_MULT
+            self._slide_vx = 0.0
             self._below_threshold = False
             self._fade_elapsed = 0.0
             self.state = FALL
@@ -76,6 +77,7 @@ class Enemy:
     def _enter_fall_grounded(self):
         self.vx = 0.0
         self.vy = 0.0
+        self._slide_vx = 0.0
         self._fall_blast_vx = 0.0
         self._fall_decay = sprite.BLAST_DECAY
         self._below_threshold = False
@@ -140,6 +142,7 @@ class Enemy:
                 self._fall_blast_vx = 0.0
                 self._below_threshold = False
                 self._fade_elapsed = 0.0
+                self._slide_vx = 0.0
                 self.state = COLLAPSE
                 self.frame = 0.0
                 self._collapse_elapsed = 0.0
