@@ -5,6 +5,7 @@ import save_data
 import background
 import sprite
 import ui
+import sound
 
 _CARD_W = 400
 _CARD_H = 290
@@ -61,17 +62,22 @@ def handle_events():
                 return
             elif event.key == pico2d.SDLK_LEFT:
                 _sel = (_sel - 1) % stage.STAGE_COUNT
+                sound.play('ui_move')
             elif event.key == pico2d.SDLK_RIGHT:
                 _sel = (_sel + 1) % stage.STAGE_COUNT
+                sound.play('ui_move')
             elif event.key == pico2d.SDLK_UP:
                 local_row = (_sel % _PER_PAGE) // 4
                 if local_row > 0:
                     _sel -= 4
+                    sound.play('ui_move')
             elif event.key == pico2d.SDLK_DOWN:
                 local_row = (_sel % _PER_PAGE) // 4
                 if local_row < 1 and _sel + 4 < stage.STAGE_COUNT:
                     _sel += 4
+                    sound.play('ui_move')
             elif event.key == pico2d.SDLK_RETURN:
+                sound.play('ui_select')
                 import play_mode
                 play_mode.start_stage = _sel
                 game_framework.change_mode(play_mode)

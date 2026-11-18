@@ -2,6 +2,7 @@ import random
 import sprite
 import camera
 import game_world
+import sound
 
 WALK = 0
 COLLAPSE = 1
@@ -62,6 +63,7 @@ class Enemy:
         self._revival_flip = vx > 0
         self._slide_vx = vx
         self.state = COLLAPSE
+        sound.play('bone_collapse')
         self.frame = 0.0
         self._collapse_elapsed = 0.0
         self._reviving = False

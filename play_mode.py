@@ -9,6 +9,7 @@ import bomb
 import background
 import fx
 import ui
+import sound
 from player import Player
 
 _FONT_PATH = 'assets/fonts/Galmuri11.ttf'
@@ -141,6 +142,7 @@ def handle_events():
                     _load_stage(_stage_idx + 1)
             elif event.key in (pico2d.SDLK_LSHIFT, pico2d.SDLK_RSHIFT):
                 bomb.toggle_type()
+                sound.play('ui_move')
             _player.handle_event(event)
         elif event.type == pico2d.SDL_KEYUP:
             _keys.discard(event.key)

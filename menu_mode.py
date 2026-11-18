@@ -2,6 +2,7 @@ import pico2d
 import game_framework
 import save_data
 import stage
+import sound
 
 _bg = None
 _items = None
@@ -58,9 +59,12 @@ def handle_events():
                 return
             elif event.key == pico2d.SDLK_UP:
                 _sel = (_sel - 1) % _ITEM_COUNT
+                sound.play('ui_move')
             elif event.key == pico2d.SDLK_DOWN:
                 _sel = (_sel + 1) % _ITEM_COUNT
+                sound.play('ui_move')
             elif event.key == pico2d.SDLK_RETURN:
+                sound.play('ui_select')
                 _execute()
                 return
 

@@ -1,6 +1,7 @@
 import sprite
 import camera
 import game_world
+import sound
 
 BOMB_HALF = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 4
 GRAVITY = -2000.0
@@ -31,6 +32,7 @@ def throw(x, y, flip):
         b = Bomb(x, y, _current_type, vx, vy)
         _active = b
         game_world.add(b)
+        sound.play('throw')
 
 
 def _clear_active():
@@ -63,6 +65,7 @@ class Bomb:
         if self.fuse >= FUSE_TIME:
             import explosion
             game_world.add(explosion.Explosion(self.x, self.y, self.bomb_type))
+            sound.play('explosion_push' if self.bomb_type == 0 else 'explosion_pull')
             _clear_active()
             game_world.remove(self)
             return

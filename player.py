@@ -2,6 +2,7 @@ import pico2d
 import sprite
 import camera
 import game_world
+import sound
 
 IDLE = 0
 WALK = 1
@@ -44,6 +45,7 @@ class Player:
         if event.type == pico2d.SDL_KEYDOWN:
             if event.key == pico2d.SDLK_SPACE and self.state not in (JUMP, BLAST, PLANT):
                 self.vy = JUMP_VY
+                sound.play('jump')
                 self.state = JUMP
                 self.frame = 0.0
             elif event.key == pico2d.SDLK_z and self.state not in (PLANT, BLAST):
@@ -132,6 +134,8 @@ class Player:
                     continue
                 if prev_feet >= tile.surface_y and curr_feet <= tile.surface_y:
                     self.y = tile.surface_y + HALF_H
+                    if self.vy < 0:
+                        sound.play('land')
                     self.vy = 0.0
                     landed = True
                     break
@@ -234,6 +238,8 @@ class Player:
                 continue
             if prev_feet > tile.surface_y and curr_feet <= tile.surface_y:
                 self.y = tile.surface_y + HALF_H
+                if self.vy < 0:
+                    sound.play('land')
                 self.vy = 0.0
                 self.frame = 0.0
                 return True
