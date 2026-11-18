@@ -1,3 +1,4 @@
+import ctypes
 import pico2d
 import game_framework
 import camera
@@ -10,12 +11,15 @@ import background
 import fx
 from player import Player
 
+_FONT_PATH = r'C:\Users\USER\Desktop\Noto_Sans_KR\NotoSansKR-VariableFont_wght.ttf'
+
 start_stage = 0
 
 _player = None
 _stage_idx = 0
 _prev_ticks = 0
 _keys = None
+_hud_font = None
 
 
 def _load_stage(idx):
@@ -44,7 +48,8 @@ def _load_stage(idx):
 
 
 def init():
-    global _player, _prev_ticks, _keys
+    global _player, _prev_ticks, _keys, _hud_font
+    _hud_font = pico2d.load_font(_FONT_PATH, 28)
     _keys = set()
     _prev_ticks = pico2d.SDL_GetTicks()
     sx, sy = stage.get_player_start(start_stage)
@@ -53,10 +58,11 @@ def init():
 
 
 def finish():
-    global _player
+    global _player, _hud_font
     bomb.remove_active()
     game_world.clear()
     _player = None
+    _hud_font = None
 
 
 def update():
@@ -94,10 +100,23 @@ def render():
     fx.draw_explosion_lights()
     fx.draw_vignette()
     fx.draw_flash()
-    hud_frame = bomb.get_type() * 2
-    hud_path, _ = sprite.SHEETS['bombs']
-    sprite.draw_frame(hud_path, hud_frame, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME, 100, 980)
+    _draw_hud()
     pico2d.update_canvas()
+
+
+def _draw_hud():
+    bomb_img = sprite.load('assets/ui_bomb_push.png' if bomb.get_type() == 0
+                           else 'assets/ui_bomb_pull.png')
+    bomb_img.draw(90, 990)
+    sprite.load('assets/ui_icon_ring.png').draw(90, 990)
+    sprite.load('assets/ui_panel.png').draw(250, 990)
+    sprite.load('assets/ui_panel.png').draw(1830, 990)
+    color = (0xEC, 0xE8, 0xE1)
+    for text, cx in ((f'적 {len(game_world.get_enemies())}', 250),
+                     (f'STAGE {_stage_idx + 1}', 1830)):
+        w, h = ctypes.c_int(), ctypes.c_int()
+        pico2d.TTF_SizeUTF8(_hud_font.font, text.encode('utf-8'), ctypes.byref(w), ctypes.byref(h))
+        _hud_font.draw(int(cx - w.value // 2), int(990 - h.value // 2), text, color)
 
 
 def handle_events():
