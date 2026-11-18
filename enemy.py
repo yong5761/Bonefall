@@ -38,6 +38,7 @@ class Enemy:
         self._fall_decay = sprite.BLAST_DECAY
         self._below_threshold = False
         self._fade_elapsed = 0.0
+        self._slide_vx = 0.0
         tiles = game_world.get_tiles()
         self._fade_threshold_y = min((t.surface_y for t in tiles), default=0.0)
 
@@ -45,6 +46,8 @@ class Enemy:
         if self.state == FALL:
             return
         if self.state == COLLAPSE:
+            if vy < 0:
+                vy = 300.0
             self.vx = vx
             self.vy = vy
             self._fall_blast_vx = vx
@@ -56,6 +59,7 @@ class Enemy:
             self._fall_elapsed = 0.0
             return
         self._revival_flip = vx > 0
+        self._slide_vx = vx
         self.state = COLLAPSE
         self.frame = 0.0
         self._collapse_elapsed = 0.0
@@ -94,6 +98,9 @@ class Enemy:
             self.flip = not self.flip
 
     def _update_collapse(self, frame_time):
+        if self._slide_vx != 0.0:
+            ratio = max(0.0, 1.0 - self._collapse_elapsed / sprite.BLAST_DECAY)
+            self.x += self._slide_vx * ratio * frame_time
         if not self._on_ground():
             self._enter_fall_grounded()
             return
