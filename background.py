@@ -1,25 +1,20 @@
 import sprite
 import camera
 
-_BG_PATH = 'assets/background_loop.png'
 _DARK_PATH = 'assets/darkness_overlay.png'
-
-_BG_PATHS = [
-    'assets/background_loop.png',
-    'assets/background_mine.png',
-    'assets/background_loop.png',
-]
 
 _stage_idx = 0
 
 
 def get_bg_image(idx):
-    return sprite.load(_BG_PATHS[idx])
+    import stage as _stage
+    return sprite.load('assets/' + _stage.get_bg_name(idx))
 
 
 def set_stage(idx):
     global _stage_idx
-    if idx < 0 or idx >= len(_BG_PATHS):
+    import stage as _stage
+    if idx < 0 or idx >= _stage.STAGE_COUNT:
         _stage_idx = 0
     else:
         _stage_idx = idx
