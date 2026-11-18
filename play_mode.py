@@ -76,7 +76,7 @@ def update():
         _load_stage(_stage_idx)
     elif not game_world.get_enemies():
         save_data.save(_stage_idx + 1)
-        _load_stage((_stage_idx + 1) % 3)
+        _load_stage((_stage_idx + 1) % stage.STAGE_COUNT)
 
 
 def render():
@@ -113,8 +113,16 @@ def handle_events():
                 return
             elif event.key == pico2d.SDLK_f:
                 camera.shake(14, 0.35, 1.0, 0.0)
-            elif event.key in (pico2d.SDLK_1, pico2d.SDLK_2, pico2d.SDLK_3):
-                _load_stage(event.key - pico2d.SDLK_1)
+            elif pico2d.SDLK_1 <= event.key <= pico2d.SDLK_9:
+                idx = event.key - pico2d.SDLK_1
+                if idx < stage.STAGE_COUNT:
+                    _load_stage(idx)
+            elif event.key == pico2d.SDLK_PAGEUP:
+                if _stage_idx > 0:
+                    _load_stage(_stage_idx - 1)
+            elif event.key == pico2d.SDLK_PAGEDOWN:
+                if _stage_idx + 1 < stage.STAGE_COUNT:
+                    _load_stage(_stage_idx + 1)
             elif event.key in (pico2d.SDLK_LSHIFT, pico2d.SDLK_RSHIFT):
                 bomb.toggle_type()
             _player.handle_event(event)

@@ -35,9 +35,17 @@ class Tile:
             self._breaking = True
 
     def _has_occupant(self):
+        from enemy import COLLAPSE
         half_h = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
         foot_half_w = int(sprite.FOOT_HALF_W_SRC * sprite.DRAW_SCALE)
-        for obj in game_world.get_players() + game_world.get_enemies():
+        for obj in game_world.get_players():
+            feet_y = obj.y - half_h
+            if abs(feet_y - self.surface_y) <= 4:
+                if obj.x + foot_half_w > self.left_x and obj.x - foot_half_w < self.right_x:
+                    return True
+        for obj in game_world.get_enemies():
+            if obj.state != COLLAPSE:
+                continue
             feet_y = obj.y - half_h
             if abs(feet_y - self.surface_y) <= 4:
                 if obj.x + foot_half_w > self.left_x and obj.x - foot_half_w < self.right_x:

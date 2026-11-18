@@ -69,9 +69,23 @@ class Enemy:
         elif self.state == FALL:
             self._update_fall(frame_time)
 
+    def _enter_fall_grounded(self):
+        self.vx = 0.0
+        self.vy = 0.0
+        self._fall_blast_vx = 0.0
+        self._fall_decay = sprite.BLAST_DECAY
+        self._below_threshold = False
+        self._fade_elapsed = 0.0
+        self.state = FALL
+        self.frame = 0.0
+        self._fall_elapsed = 0.0
+
     def _update_walk(self, frame_time):
         walk_count = sprite.SHEETS['enemy_walk'][1]
         self.frame = (self.frame + sprite.WALK_FPS * frame_time) % walk_count
+        if not self._on_ground():
+            self._enter_fall_grounded()
+            return
         vx = -ENEMY_WALK_SPEED if self.flip else ENEMY_WALK_SPEED
         prev_x = self.x
         self.x += vx * frame_time
@@ -80,6 +94,9 @@ class Enemy:
             self.flip = not self.flip
 
     def _update_collapse(self, frame_time):
+        if not self._on_ground():
+            self._enter_fall_grounded()
+            return
         collapse_frames = sprite.SHEETS['enemy_collapse'][1]
         if not self._reviving:
             self._collapse_elapsed += frame_time
