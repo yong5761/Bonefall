@@ -41,6 +41,7 @@ class Enemy:
         self._below_threshold = False
         self._fade_elapsed = 0.0
         self._slide_vx = 0.0
+        self._slide_progress = 0.0
         self._frozen_sheet = 'enemy_walk'
         self._freeze_remaining = 0.0
         self._freeze_elapsed = 0.0
@@ -70,6 +71,7 @@ class Enemy:
             return
         self._revival_flip = vx > 0
         self._slide_vx = vx
+        self._slide_progress = 0.0
         self.state = COLLAPSE
         sound.play('bone_collapse')
         self.frame = 0.0
@@ -107,9 +109,11 @@ class Enemy:
             self._enter_fall_grounded()
             return
         if self._slide_vx != 0.0:
-            ratio = max(0.0, 1.0 - self._freeze_elapsed / (sprite.BLAST_DECAY * sprite.ICE_DECAY_MULT))
+            from tile import ice_at
+            mult = sprite.ICE_SLIDE_MULT if ice_at(self.x, self.y - HALF_H) else 1.0
+            self._freeze_elapsed += frame_time / (sprite.BLAST_DECAY * sprite.ICE_DECAY_MULT * mult)
+            ratio = max(0.0, 1.0 - self._freeze_elapsed)
             self.x += self._slide_vx * ratio * frame_time
-        self._freeze_elapsed += frame_time
 
     def _enter_fall_grounded(self):
         self.vx = 0.0
@@ -138,7 +142,10 @@ class Enemy:
 
     def _update_collapse(self, frame_time):
         if self._slide_vx != 0.0:
-            ratio = max(0.0, 1.0 - self._collapse_elapsed / sprite.BLAST_DECAY)
+            from tile import ice_at
+            mult = sprite.ICE_SLIDE_MULT if ice_at(self.x, self.y - HALF_H) else 1.0
+            self._slide_progress += frame_time / (sprite.BLAST_DECAY * mult)
+            ratio = max(0.0, 1.0 - self._slide_progress)
             self.x += self._slide_vx * ratio * frame_time
         if not self._on_ground():
             self._enter_fall_grounded()

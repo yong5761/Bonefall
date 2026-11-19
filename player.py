@@ -135,8 +135,11 @@ class Player:
             return
 
         if self.state == BLAST:
-            self._blast_elapsed += frame_time
-            ratio = max(0.0, 1.0 - self._blast_elapsed / sprite.BLAST_DECAY)
+            from tile import ice_at
+            on_ice = self._on_ground() and ice_at(self.x, self.y - HALF_H)
+            mult = sprite.ICE_SLIDE_MULT if on_ice else 1.0
+            self._blast_elapsed += frame_time / (sprite.BLAST_DECAY * mult)
+            ratio = max(0.0, 1.0 - self._blast_elapsed)
             self.vx = self._blast_vx * ratio
             left = pico2d.SDLK_LEFT in keys
             right = pico2d.SDLK_RIGHT in keys
@@ -167,12 +170,12 @@ class Player:
                     self.vy = 0.0
                     landed = True
                     break
-            if landed and self._blast_elapsed >= sprite.BLAST_DECAY:
+            if landed and self._blast_elapsed >= 1.0:
                 self.state = WALK if (left or right) else IDLE
             if self.y < -300:
                 self._reset()
             blast_count = sprite.SHEETS['player_blast'][1]
-            self.frame = min(self._blast_elapsed / sprite.BLAST_DECAY * blast_count, float(blast_count - 1))
+            self.frame = min(self._blast_elapsed * blast_count, float(blast_count - 1))
             return
 
         left = pico2d.SDLK_LEFT in keys
