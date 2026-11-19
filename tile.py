@@ -20,6 +20,7 @@ class Tile:
         self.left_x = gx * sz
         self.right_x = (gx + 1) * sz
         self.is_weak = tile_index in (4, 5, 6, 7)
+        self.is_ice = tile_index in (12, 13, 14, 15)
         self._breaking = False
         self._break_elapsed = 0.0
 
@@ -61,3 +62,14 @@ class Tile:
         else:
             sprite.draw_frame(TILE_SHEET, self.tile_index, TILE_SRC, TILE_SRC,
                               self.cx + camera.ox, self.cy + camera.oy)
+
+
+def ice_at(x, feet_y):
+    for tile in game_world.get_tiles():
+        if not tile.is_ice:
+            continue
+        if x <= tile.left_x or x >= tile.right_x:
+            continue
+        if abs(feet_y - tile.surface_y) <= 4:
+            return True
+    return False

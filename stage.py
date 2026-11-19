@@ -9,6 +9,7 @@ _GRID_COLS = 12
 _TILE_CHARS = {
     '#': 0,
     '=': 4,
+    '~': 12,
 }
 
 _ENTITY_PREFIXES = {

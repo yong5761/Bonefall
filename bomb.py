@@ -81,7 +81,8 @@ class Bomb:
             if self._on_ground():
                 self._snap_to_ground()
                 self.state = LANDED
-                self.vx = 0.0
+                if not self._on_ice():
+                    self.vx = 0.0
                 self.vy = 0.0
                 return
             self.vy += GRAVITY * frame_time
@@ -90,7 +91,24 @@ class Bomb:
             self.y += self.vy * frame_time
             if self.vy <= 0 and self._try_land(prev_y):
                 self.state = LANDED
-                self.vx = 0.0
+                if not self._on_ice():
+                    self.vx = 0.0
+
+        elif self.state == LANDED:
+            if self.vx != 0.0:
+                self.x += self.vx * frame_time
+                if self._on_ice():
+                    self.vx -= self.vx * sprite.ICE_TILE_FRICTION * frame_time
+                    if abs(self.vx) < 20:
+                        self.vx = 0.0
+                else:
+                    self.vx = 0.0
+            if not self._on_ground():
+                self.state = FALLING
+
+    def _on_ice(self):
+        from tile import ice_at
+        return ice_at(self.x, self.y - BOMB_HALF)
 
     def _on_ground(self):
         feet_y = self.y - BOMB_HALF

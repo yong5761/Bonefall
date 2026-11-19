@@ -179,13 +179,19 @@ class Player:
         right = pico2d.SDLK_RIGHT in keys
 
         if left and not right:
-            self.vx = -MOVE_SPEED
+            target_vx = -MOVE_SPEED
             self.flip = True
         elif right and not left:
-            self.vx = MOVE_SPEED
+            target_vx = MOVE_SPEED
             self.flip = False
         else:
-            self.vx = 0.0
+            target_vx = 0.0
+
+        from tile import ice_at
+        if self.state != JUMP and ice_at(self.x, self.y - HALF_H):
+            self.vx += (target_vx - self.vx) * sprite.ICE_PLAYER_ACCEL_MULT
+        else:
+            self.vx = target_vx
 
         if self.state == JUMP:
             self.vy += GRAVITY * frame_time

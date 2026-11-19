@@ -20,6 +20,9 @@ BG_SCALE = 1.03
 FLASH_TIME = 0.08
 FLASH_ALPHA = 200
 
+ICE_TILE_FRICTION = 0.25
+ICE_PLAYER_ACCEL_MULT = 0.25
+
 FREEZE_TIME = 2.5
 PLAYER_FREEZE_TIME = 0.8
 ICE_BLAST_MULT = 0.35
@@ -38,7 +41,7 @@ SHEETS = {
     'bombs':            ('assets/bombs.png',            6),
     'bomb_push_fuse':   ('assets/bomb_push_fuse.png',   13),
     'bomb_pull_fuse':   ('assets/bomb_pull_fuse.png',   13),
-    'tiles':            ('assets/tiles.png',            12),
+    'tiles':            ('assets/tiles.png',            16),
     'lever':            ('assets/lever.png',            48),
 }
 
