@@ -7,6 +7,7 @@ import sound
 WALK = 0
 COLLAPSE = 1
 FALL = 2
+FROZEN = 3
 
 ENEMY_HALF_W = int(sprite.FOOT_HALF_W_SRC * sprite.DRAW_SCALE)
 HALF_H = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
@@ -40,11 +41,18 @@ class Enemy:
         self._below_threshold = False
         self._fade_elapsed = 0.0
         self._slide_vx = 0.0
+        self._frozen_sheet = 'enemy_walk'
+        self._freeze_remaining = 0.0
+        self._freeze_elapsed = 0.0
         tiles = game_world.get_tiles()
         self._fade_threshold_y = min((t.surface_y for t in tiles), default=0.0)
 
     def receive_blast(self, vx, vy):
         if self.state == FALL:
+            return
+        if self.state == FROZEN:
+            self._slide_vx = vx
+            self._freeze_elapsed = 0.0
             return
         if self.state == COLLAPSE:
             if vy < 0:
@@ -68,6 +76,16 @@ class Enemy:
         self._collapse_elapsed = 0.0
         self._reviving = False
 
+    def freeze(self, vx):
+        if self.state == FALL:
+            return
+        if self.state != FROZEN:
+            self._frozen_sheet = 'enemy_walk' if self.state == WALK else 'enemy_collapse'
+        self.state = FROZEN
+        self._freeze_remaining = sprite.FREEZE_TIME
+        self._freeze_elapsed = 0.0
+        self._slide_vx = vx
+
     def update(self, frame_time):
         if self.state == WALK:
             self._update_walk(frame_time)
@@ -75,6 +93,23 @@ class Enemy:
             self._update_collapse(frame_time)
         elif self.state == FALL:
             self._update_fall(frame_time)
+        elif self.state == FROZEN:
+            self._update_frozen(frame_time)
+
+    def _update_frozen(self, frame_time):
+        self._freeze_remaining -= frame_time
+        if self._freeze_remaining <= 0.0:
+            self.state = WALK
+            self._slide_vx = 0.0
+            sound.play('ice_break')
+            return
+        if not self._on_ground():
+            self._enter_fall_grounded()
+            return
+        if self._slide_vx != 0.0:
+            ratio = max(0.0, 1.0 - self._freeze_elapsed / (sprite.BLAST_DECAY * sprite.ICE_DECAY_MULT))
+            self.x += self._slide_vx * ratio * frame_time
+        self._freeze_elapsed += frame_time
 
     def _enter_fall_grounded(self):
         self.vx = 0.0
@@ -186,6 +221,11 @@ class Enemy:
                 shake_y = random.uniform(-2, 2) * sprite.DRAW_SCALE
             sprite.draw_frame(path, int(self.frame), sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
                               self.x + camera.ox + shake_x, draw_y + shake_y, self.flip)
+        elif self.state == FROZEN:
+            path, _ = sprite.SHEETS[self._frozen_sheet]
+            sprite.draw_frame(path, int(self.frame), sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
+                              self.x + camera.ox, draw_y, self.flip,
+                              tint=sprite.FROZEN_TINT)
         elif self.state == FALL:
             path, _ = sprite.SHEETS['enemy_fall']
             if self._below_threshold:

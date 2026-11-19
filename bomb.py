@@ -21,7 +21,7 @@ def get_type():
 
 def toggle_type():
     global _current_type
-    _current_type = 1 - _current_type
+    _current_type = (_current_type + 1) % 3
 
 
 def throw(x, y, flip):
@@ -65,7 +65,10 @@ class Bomb:
         if self.fuse >= FUSE_TIME:
             import explosion
             game_world.add(explosion.Explosion(self.x, self.y, self.bomb_type))
-            sound.play('explosion_push' if self.bomb_type == 0 else 'explosion_pull')
+            if self.bomb_type == 2:
+                sound.play('ice_freeze')
+            else:
+                sound.play('explosion_push' if self.bomb_type == 0 else 'explosion_pull')
             _clear_active()
             game_world.remove(self)
             return

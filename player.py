@@ -40,6 +40,7 @@ class Player:
         self._blast_elapsed = 0.0
         self._control_vx = 0.0
         self.died = False
+        self._freeze_remaining = 0.0
 
     def handle_event(self, event):
         if event.type == pico2d.SDL_KEYDOWN:
@@ -53,6 +54,10 @@ class Player:
                 bomb.throw(self.x, self.y, self.flip)
                 self.state = PLANT
                 self.frame = 0.0
+
+    def freeze(self, vx):
+        self._freeze_remaining = sprite.PLAYER_FREEZE_TIME
+        self.vx = vx
 
     def receive_blast(self, vx, vy):
         self.vx = vx
@@ -69,6 +74,29 @@ class Player:
         camera.shake(20, sprite.BLAST_DECAY, sdx, sdy)
 
     def update(self, frame_time, keys):
+        if self._freeze_remaining > 0.0:
+            self._freeze_remaining -= frame_time
+            if self._freeze_remaining <= 0.0:
+                self._freeze_remaining = 0.0
+                sound.play('ice_break')
+            prev_y = self.y
+            on_ground = self._on_ground()
+            if not on_ground:
+                self.vy += GRAVITY * frame_time
+            else:
+                self.vy = 0.0
+            self.x += self.vx * frame_time
+            self.y += self.vy * frame_time
+            half_sprite_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 2
+            self.x = max(float(half_sprite_w), min(1920.0 - half_sprite_w, self.x))
+            if not on_ground and self.vy <= 0:
+                saved = self.frame
+                self._try_land(prev_y)
+                self.frame = saved
+            if self.y < -300:
+                self._reset()
+            return
+
         if self.state == PLANT:
             left = pico2d.SDLK_LEFT in keys
             right = pico2d.SDLK_RIGHT in keys
@@ -268,7 +296,8 @@ class Player:
     def draw(self):
         path, _ = sprite.SHEETS[_STATE_SHEET[self.state]]
         draw_y = self.y + camera.oy - sprite.FOOT_MARGIN * sprite.DRAW_SCALE
+        tint = sprite.FROZEN_TINT if self._freeze_remaining > 0.0 else None
         sprite.draw_frame(
             path, int(self.frame), sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-            self.x + camera.ox, draw_y, self.flip
+            self.x + camera.ox, draw_y, self.flip, tint=tint
         )

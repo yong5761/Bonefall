@@ -42,8 +42,12 @@ class Explosion:
                 nx, ny = dx / dist, dy / dist
             if self.blast_type == 1:
                 nx, ny = -nx, -ny
-            t.receive_blast(nx * sprite.BLAST_SPEED_SRC * sprite.DRAW_SCALE,
-                            ny * sprite.BLAST_SPEED_SRC * sprite.DRAW_SCALE)
+            speed = sprite.BLAST_SPEED_SRC * sprite.DRAW_SCALE
+            if self.blast_type == 2:
+                speed *= sprite.ICE_BLAST_MULT
+            t.receive_blast(nx * speed, ny * speed)
+            if self.blast_type == 2 and hasattr(t, 'freeze'):
+                t.freeze(nx * speed)
 
     def update(self, frame_time):
         self.elapsed += frame_time
@@ -52,7 +56,7 @@ class Explosion:
 
     def draw(self):
         frame = min(int(self.elapsed / ANIM_DURATION * FRAME_COUNT), FRAME_COUNT - 1)
-        bottom_offset = sprite.PLAYER_FRAME if self.blast_type == 0 else 0
+        bottom_offset = 0 if self.blast_type == 1 else sprite.PLAYER_FRAME
         img = sprite.load('assets/explosion.png')
         out_size = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE)
         img.clip_composite_draw(
