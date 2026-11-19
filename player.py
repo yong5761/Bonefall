@@ -38,6 +38,7 @@ class Player:
         self.frame = 0.0
         self._blast_vx = 0.0
         self._blast_elapsed = 0.0
+        self._blast_air_elapsed = 0.0
         self._control_vx = 0.0
         self.died = False
         self._freeze_remaining = 0.0
@@ -64,6 +65,7 @@ class Player:
         self.vy = vy
         self._blast_vx = vx
         self._blast_elapsed = 0.0
+        self._blast_air_elapsed = 0.0
         self.state = BLAST
         self.frame = 0.0
         spd = (vx * vx + vy * vy) ** 0.5
@@ -136,9 +138,14 @@ class Player:
 
         if self.state == BLAST:
             from tile import ice_at
-            on_ice = self._on_ground() and ice_at(self.x, self.y - HALF_H)
-            mult = sprite.ICE_SLIDE_MULT if on_ice else 1.0
-            self._blast_elapsed += frame_time / (sprite.BLAST_DECAY * mult)
+            on_ground = self._on_ground()
+            if on_ground:
+                self._blast_air_elapsed = 0.0
+                on_ice = ice_at(self.x, self.y - HALF_H)
+                mult = sprite.ICE_SLIDE_MULT if on_ice else 1.0
+                self._blast_elapsed += frame_time / (sprite.BLAST_DECAY * mult)
+            else:
+                self._blast_air_elapsed += frame_time
             ratio = max(0.0, 1.0 - self._blast_elapsed)
             self.vx = self._blast_vx * ratio
             left = pico2d.SDLK_LEFT in keys
@@ -171,6 +178,8 @@ class Player:
                     landed = True
                     break
             if landed and self._blast_elapsed >= 1.0:
+                self.state = WALK if (left or right) else IDLE
+            elif self._blast_air_elapsed >= sprite.BLAST_AIR_LIMIT:
                 self.state = WALK if (left or right) else IDLE
             if self.y < -300:
                 self._reset()

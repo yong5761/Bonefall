@@ -168,8 +168,6 @@ class Enemy:
 
     def _update_fall(self, frame_time):
         self._fall_elapsed += frame_time
-        ratio = max(0.0, 1.0 - self._fall_elapsed / self._fall_decay)
-        self.vx = self._fall_blast_vx * ratio
         self.vy += GRAVITY * frame_time
         prev_y = self.y
         self.x += self.vx * frame_time
@@ -182,11 +180,12 @@ class Enemy:
             if prev_feet >= tile.surface_y and curr_feet <= tile.surface_y:
                 self.y = tile.surface_y + HALF_H
                 self.vy = 0.0
+                self._slide_vx = self.vx
+                self._slide_progress = 0.0
                 self.vx = 0.0
                 self._fall_blast_vx = 0.0
                 self._below_threshold = False
                 self._fade_elapsed = 0.0
-                self._slide_vx = 0.0
                 sound.play('bone_collapse')
                 self.state = COLLAPSE
                 self.frame = 0.0
