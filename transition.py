@@ -6,9 +6,9 @@ OUT  = 2
 IN   = 3
 
 _HOLD_TIME = 0.7
-_OUT_TIME  = 0.35
-_IN_TIME   = 0.35
-_LEVELS = (1, 2, 4, 8, 16, 32)
+_OUT_TIME  = 0.8
+_IN_TIME   = 0.8
+_LEVELS = (1, 2, 3, 4, 5, 6, 8, 10, 12)
 _W = 1920
 _H = 1080
 

@@ -188,6 +188,41 @@ def draw_explosion_lights():
         pico2d.SDL_SetTextureAlphaMod(img.texture, 255)
 
 
+def draw_lever_lights():
+    import lever
+    img = sprite.load(_LIGHT_PATH)
+    for lv in game_world.get_levers():
+        if lv.state == lever.LOCKED:
+            continue
+        gx = lv.x + camera.ox
+        gy = lv.y + 12.0 + camera.oy
+        pulsed = lv.state == lever.PULLED
+        phase = lv.ready_elapsed if lv.ready_elapsed >= 0.0 else 0.0
+        base_size = 250 if pulsed else 190
+        base_alpha = (170 if pulsed else 105) + (30 if pulsed else 45) * math.sin(phase * 6.0)
+        _draw_light(img, gx, gy, int(base_size), int(base_alpha))
+        for elapsed, span, peak in (
+                (lv.ready_elapsed, lever.READY_BURST_TIME, 190),
+                (lv.pull_elapsed, lever.PULL_BURST_TIME, 240)):
+            if elapsed < 0.0 or elapsed >= span:
+                continue
+            q = elapsed / span
+            _draw_light(img, gx, gy, int(140 + 560 * q), int(peak * (1.0 - q)))
+
+
+def _draw_light(img, x, y, size, alpha):
+    alpha = max(0, min(255, alpha))
+    if alpha <= 0:
+        return
+    pico2d.SDL_SetTextureBlendMode(img.texture, pico2d.SDL_BLENDMODE_ADD)
+    pico2d.SDL_SetTextureColorMod(img.texture, 255, 186, 92)
+    pico2d.SDL_SetTextureAlphaMod(img.texture, alpha)
+    img.clip_composite_draw(0, 0, 256, 256, 0, '', x, y, size, size)
+    pico2d.SDL_SetTextureColorMod(img.texture, 255, 255, 255)
+    pico2d.SDL_SetTextureBlendMode(img.texture, pico2d.SDL_BLENDMODE_BLEND)
+    pico2d.SDL_SetTextureAlphaMod(img.texture, 255)
+
+
 def draw_afterimages():
     out_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE)
     out_h = out_w
