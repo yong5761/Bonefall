@@ -140,6 +140,9 @@ class Bomb:
 
     def _on_ground(self):
         feet_y = self.y - BOMB_HALF
+        from pad import pad_at
+        if pad_at(self.x, feet_y):
+            return False
         for tile in game_world.get_tiles():
             if self.x + BOMB_HALF <= tile.left_x or self.x - BOMB_HALF >= tile.right_x:
                 continue
@@ -159,6 +162,9 @@ class Bomb:
     def _try_land(self, prev_y):
         prev_feet = prev_y - BOMB_HALF
         curr_feet = self.y - BOMB_HALF
+        from pad import pad_at
+        if pad_at(self.x, curr_feet):
+            return False
         for tile in game_world.get_tiles():
             if self.x + BOMB_HALF <= tile.left_x or self.x - BOMB_HALF >= tile.right_x:
                 continue

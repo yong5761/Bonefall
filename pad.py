@@ -10,6 +10,15 @@ PAD_W = 64
 PAD_H = 32
 
 
+def pad_at(x, feet_y):
+    for p in game_world.get_pads():
+        if abs(x - p.x) > PAD_W * sprite.DRAW_SCALE / 2.0:
+            continue
+        if -18.0 <= feet_y - p.y <= 26.0:
+            return True
+    return False
+
+
 class Pad:
     def __init__(self, x, y):
         self.x = float(x)
