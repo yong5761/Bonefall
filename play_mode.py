@@ -35,6 +35,8 @@ def _load_stage(idx):
         game_world.add(tile)
     for mt in stage.build_moving(idx):
         game_world.add(mt)
+    for c in stage.build_circles(idx):
+        game_world.add(c)
     game_world.set_player(_player)
     for e in stage.build_enemies(idx):
         game_world.add(e)

@@ -227,28 +227,15 @@ RAIL_COLOR = (96, 196, 255)
 
 
 def draw_rail_lights():
-    from tile import MovingTile
     img = sprite.load(_LIGHT_PATH)
     for tl in game_world.get_tiles():
-        if not isinstance(tl, MovingTile):
+        points = getattr(tl, 'rail_points', None)
+        if points is None:
             continue
-        wx0, wy0, wx1, wy1 = tl.rail_endpoints()
-        x0 = wx0 + camera.ox
-        y0 = wy0 + camera.oy
-        x1 = wx1 + camera.ox
-        y1 = wy1 + camera.oy
-        length = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
-        if length < 1.0:
-            continue
-        ux = (x1 - x0) / length
-        uy = (y1 - y0) / length
-        count = int(length / 160.0)
-        for k in range(count + 1):
-            t = min(length, k * 160.0)
-            wx = wx0 + (wx1 - wx0) * (t / length)
-            if tl.left_x <= wx <= tl.right_x:
+        for wx, wy in points():
+            if tl.left_x <= wx <= tl.right_x and abs(wy - (tl.surface_y - 40.0)) <= 48.0:
                 continue
-            _draw_light(img, x0 + ux * t, y0 + uy * t, 56, 78, RAIL_COLOR)
+            _draw_light(img, wx + camera.ox, wy + camera.oy, 56, 78, RAIL_COLOR)
 
 
 def draw_afterimages():

@@ -17,6 +17,7 @@ _ENTITY_PREFIXES = {
     'E': 'enemy',
     'L': 'lever',
     'M': 'moving',
+    'C': 'circle',
 }
 
 _COORD_COUNTS = {
@@ -24,6 +25,7 @@ _COORD_COUNTS = {
     'enemy': 2,
     'lever': 2,
     'moving': 5,
+    'circle': 6,
 }
 
 _STAGES = []
@@ -31,6 +33,7 @@ _PLAYER_STARTS = []
 _ENEMY_STARTS = []
 _LEVER_STARTS = []
 _MOVING_STARTS = []
+_CIRCLE_STARTS = []
 _BG_NAMES = []
 
 
@@ -80,6 +83,7 @@ def _load_file(path):
     lever_start = None
     enemies = []
     moving_starts = []
+    circle_starts = []
     for li, line in enumerate(lines[1 + _GRID_ROWS:], start=2 + _GRID_ROWS):
         if line.strip() == '':
             continue
@@ -108,11 +112,14 @@ def _load_file(path):
             lever_start = (nums[0], nums[1])
         elif kind == 'moving':
             moving_starts.append((nums[0], nums[1], nums[2], nums[3], nums[4]))
+        elif kind == 'circle':
+            circle_starts.append((nums[0], nums[1], nums[2], nums[3], nums[4], nums[5]))
 
     if player_start is None:
         sys.exit(f'{fname}: P: 줄이 없다')
 
-    return bg_name, tiles, player_start, enemies, lever_start, moving_starts
+    return (bg_name, tiles, player_start, enemies, lever_start,
+            moving_starts, circle_starts)
 
 
 def _load_all():
@@ -127,13 +134,15 @@ def _load_all():
     if not paths:
         sys.exit('stages/ 폴더에 .txt 파일이 없다')
     for path in paths:
-        bg_name, tiles, player_start, enemies, lever_start, moving_starts = _load_file(path)
+        (bg_name, tiles, player_start, enemies, lever_start,
+         moving_starts, circle_starts) = _load_file(path)
         _BG_NAMES.append(bg_name)
         _STAGES.append(tiles)
         _PLAYER_STARTS.append(player_start)
         _ENEMY_STARTS.append(enemies)
         _LEVER_STARTS.append(lever_start)
         _MOVING_STARTS.append(moving_starts)
+        _CIRCLE_STARTS.append(circle_starts)
 
 
 _load_all()
@@ -176,3 +185,9 @@ def build_lever(idx=0):
 def build_moving(idx=0):
     from tile import MovingTile
     return [MovingTile(x, y, ex, ey, w) for x, y, ex, ey, w in _MOVING_STARTS[idx]]
+
+
+def build_circles(idx=0):
+    from tile import CircleTile
+    return [CircleTile(cx, cy, r, w, speed, start)
+            for cx, cy, r, w, speed, start in _CIRCLE_STARTS[idx]]
