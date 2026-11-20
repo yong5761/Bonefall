@@ -168,7 +168,7 @@ def _draw_hud():
         skull = sprite.load('assets/ui_skull.png')
         start = 250 - (left - 1) * 17
         for i in range(left):
-            skull.draw(start + i * 34, 990)
+            skull.draw(start + i * 34, 990, 30, 30)
     elif left > 5:
         ui.draw_text_outlined(_hud_font, 250, 990, f'적 {left}', color)
     ui.draw_text_outlined(_hud_font, 1830, 990, f'STAGE {_stage_idx + 1}', color)
