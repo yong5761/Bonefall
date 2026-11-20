@@ -6,6 +6,7 @@ import sound
 BOMB_HALF = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE) // 4
 GRAVITY = -2000.0
 FUSE_TIME = 1.0
+HOLD_LIMIT = 2.0
 BODY_FPS = 4
 
 FALLING = 0
@@ -79,12 +80,13 @@ class Bomb:
         self.state = FALLING
         self.fuse = 0.0
         self.fuse_hold = False
+        self.hold_elapsed = 0.0
         self.body_frame = 0.0
 
     def update(self, frame_time):
         self.body_frame = (self.body_frame + BODY_FPS * frame_time) % 2.0
-        if self.fuse_hold and self.state == FALLING:
-            pass
+        if self.fuse_hold and self.state == FALLING and self.hold_elapsed < HOLD_LIMIT:
+            self.hold_elapsed += frame_time
         else:
             self.fuse += frame_time
 

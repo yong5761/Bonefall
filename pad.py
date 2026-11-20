@@ -56,7 +56,6 @@ class Pad:
             obj.vy = BOUNCE
             obj.state = _bomb.FALLING
             obj.fuse_hold = True
-            obj.fuse = 0.0
             return
         if isinstance(obj, _enemy.Enemy):
             obj.y = self.y + _enemy.HALF_H + 14.0
