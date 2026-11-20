@@ -6,7 +6,7 @@ import camera
 TILE_SHEET = 'assets/tiles.png'
 TILE_SRC = 80
 RAIL_NODE = 'assets/rail_node.png'
-RAIL_NODE_SIZE = 24
+RAIL_NODE_SIZE = 38
 
 
 def _sz():
