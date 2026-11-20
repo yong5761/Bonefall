@@ -154,7 +154,7 @@ def render():
 
 
 def _draw_hud():
-    sprite.load('assets/hud_bar.png').draw(960, 1016)
+    sprite.load('assets/hud_bar.png').draw(960, 1000)
     bomb_img = sprite.load(('assets/ui_bomb_push.png',
                             'assets/ui_bomb_pull.png',
                             'assets/ui_bomb_ice.png')[bomb.get_type()])
