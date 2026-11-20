@@ -48,6 +48,7 @@ SHEETS = {
     'bomb_pull_fuse':   ('assets/bomb_pull_fuse.png',   13),
     'tiles':            ('assets/tiles.png',            20),
     'lever':            ('assets/lever.png',            48),
+    'switch':           ('assets/switch.png',           48),
 }
 
 _cache = {}

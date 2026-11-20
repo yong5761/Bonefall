@@ -37,6 +37,8 @@ def _load_stage(idx):
         game_world.add(mt)
     for c in stage.build_circles(idx):
         game_world.add(c)
+    for sw in stage.build_switches(idx):
+        game_world.add(sw)
     game_world.set_player(_player)
     for e in stage.build_enemies(idx):
         game_world.add(e)
@@ -116,6 +118,7 @@ def render():
     background.draw()
     game_world.draw_tiles()
     game_world.draw_levers()
+    game_world.draw_switches()
     fx.draw_all_shadows()
     game_world.draw_enemies()
     game_world.draw_bombs()
@@ -127,6 +130,7 @@ def render():
     fx.draw_debris()
     fx.draw_explosion_lights()
     fx.draw_lever_lights()
+    fx.draw_switch_lights()
     fx.draw_rail_lights()
     fx.draw_vignette()
     fx.draw_flash()

@@ -92,3 +92,15 @@ def draw_explosions():
     for obj in _objects:
         if isinstance(obj, Explosion):
             obj.draw()
+
+
+def get_switches():
+    from switch import Switch
+    return [obj for obj in _objects if isinstance(obj, Switch)]
+
+
+def draw_switches():
+    from switch import Switch
+    for obj in _objects:
+        if isinstance(obj, Switch):
+            obj.draw()

@@ -79,6 +79,16 @@ def ice_at(x, feet_y):
     return False
 
 
+def _group_on(group):
+    if group == 0:
+        return True
+    from switch import Switch
+    for obj in game_world.get_switches():
+        if obj.group == group:
+            return obj.on
+    return True
+
+
 def _carry_riders(old_left, old_right, old_surface, dx, dy):
     if dx == 0.0 and dy == 0.0:
         return
@@ -93,9 +103,10 @@ def _carry_riders(old_left, old_right, old_surface, dx, dy):
 
 
 class MovingTile(Tile):
-    def __init__(self, x, y, ex, ey, w):
+    def __init__(self, x, y, ex, ey, w, group=0):
         sz = _sz()
         self.w = w
+        self.group = int(group)
         self.is_weak = False
         self.is_ice = False
         self._breaking = False
@@ -121,6 +132,8 @@ class MovingTile(Tile):
 
     def update(self, frame_time):
         if self._dist < 1.0:
+            return
+        if not _group_on(self.group):
             return
         sz = _sz()
         old_left_x = self.left_x
@@ -216,8 +229,9 @@ class MovingTile(Tile):
 
 
 class CircleTile(Tile):
-    def __init__(self, cx, cy, r, w, speed, start):
+    def __init__(self, cx, cy, r, w, speed, start, group=0):
         self.w = w
+        self.group = int(group)
         self.is_weak = False
         self.is_ice = False
         self._breaking = False
@@ -244,6 +258,8 @@ class CircleTile(Tile):
         self.cy = self.surface_y - sz / 2.0
 
     def update(self, frame_time):
+        if not _group_on(self.group):
+            return
         old_left = self.left_x
         old_right = self.right_x
         old_surface = self.surface_y

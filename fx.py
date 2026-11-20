@@ -226,6 +226,15 @@ def _draw_light(img, x, y, size, alpha, color=(255, 186, 92)):
 RAIL_COLOR = (96, 196, 255)
 
 
+def draw_switch_lights():
+    img = sprite.load(_LIGHT_PATH)
+    for sw in game_world.get_switches():
+        size = 150 if sw.on else 96
+        alpha = 150 if sw.on else 70
+        _draw_light(img, sw.x + camera.ox, sw.y + 12.0 + camera.oy,
+                    size, alpha, RAIL_COLOR)
+
+
 def draw_rail_lights():
     img = sprite.load(_LIGHT_PATH)
     for tl in game_world.get_tiles():

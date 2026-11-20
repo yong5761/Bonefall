@@ -29,7 +29,8 @@ class Explosion:
         self._apply_knockback()
 
     def _apply_knockback(self):
-        targets = game_world.get_players() + game_world.get_enemies() + game_world.get_levers()
+        targets = (game_world.get_players() + game_world.get_enemies()
+                   + game_world.get_levers() + game_world.get_switches())
         for t in targets:
             dx = t.x - self.x
             dy = t.y - self.y
