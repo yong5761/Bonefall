@@ -250,11 +250,12 @@ def draw_rail_lights():
         count = int(length / 160.0)
         for k in range(count + 1):
             t = min(length, k * 160.0)
-            glow = 54 + 22 * math.sin(_rail_phase * 2.6 + k * 0.9)
-            _draw_light(img, x0 + ux * t, y0 + uy * t, 78, int(glow), RAIL_COLOR)
+            glow = 38 + 16 * math.sin(_rail_phase * 2.6 + k * 0.9)
+            _draw_light(img, x0 + ux * t, y0 + uy * t, 44, int(glow), RAIL_COLOR)
         span = length + 240.0
         head = (_rail_phase * RAIL_PULSE_SPEED) % span
-        for trail, size, peak in ((0.0, 130, 150), (34.0, 100, 90), (68.0, 80, 50)):
+        for trail, size, peak in ((0.0, 72, 170), (22.0, 58, 110), (44.0, 46, 60),
+                                  (66.0, 38, 32)):
             t = head - trail
             if t < 0.0 or t > length:
                 continue

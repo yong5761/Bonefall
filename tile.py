@@ -160,13 +160,15 @@ class MovingTile(Tile):
             return
         ux = (x1 - x0) / length
         uy = (y1 - y0) / length
-        steps = int(length / 6.0) + 1
-        for k in range(steps + 1):
-            t = min(length, k * 6.0)
-            px = x0 + ux * t
-            py = y0 + uy * t
-            pico2d.draw_rectangle(int(px - 3), int(py - 3), int(px + 3), int(py + 3),
-                                  0x3C, 0x40, 0x5A, 255, filled=True)
+        steps = int(length / 4.0) + 1
+        for half, col in ((4, (0x16, 0x26, 0x34)), (2, (0x2E, 0x7A, 0xAA)), (1, (0x8C, 0xE6, 0xFF))):
+            for k in range(steps + 1):
+                t = min(length, k * 4.0)
+                px = x0 + ux * t
+                py = y0 + uy * t
+                pico2d.draw_rectangle(int(px - half), int(py - half),
+                                      int(px + half), int(py + half),
+                                      col[0], col[1], col[2], 255, filled=True)
         node = sprite.load(RAIL_NODE)
         gap = 160.0
         count = int(length / gap)
