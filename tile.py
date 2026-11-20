@@ -1,9 +1,12 @@
+import pico2d
 import game_world
 import sprite
 import camera
 
 TILE_SHEET = 'assets/tiles.png'
 TILE_SRC = 80
+RAIL_NODE = 'assets/rail_node.png'
+RAIL_NODE_SIZE = 24
 
 
 def _sz():
@@ -138,7 +141,35 @@ class MovingTile(Tile):
                 obj.x += dx
                 obj.y += dy
 
+    def _draw_rail(self):
+        sz = _sz()
+        half = self.w * sz / 2.0
+        x0 = self._sx + half + camera.ox
+        y0 = self._sy - sz / 2.0 + camera.oy
+        x1 = self._sx + self._dir_x * self._dist + half + camera.ox
+        y1 = self._sy + self._dir_y * self._dist - sz / 2.0 + camera.oy
+        length = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
+        if length < 1.0:
+            return
+        ux = (x1 - x0) / length
+        uy = (y1 - y0) / length
+        steps = int(length / 6.0) + 1
+        for k in range(steps + 1):
+            t = min(length, k * 6.0)
+            px = x0 + ux * t
+            py = y0 + uy * t
+            pico2d.draw_rectangle(int(px - 3), int(py - 3), int(px + 3), int(py + 3),
+                                  0x3C, 0x40, 0x5A, 255, filled=True)
+        node = sprite.load(RAIL_NODE)
+        gap = 160.0
+        count = int(length / gap)
+        for k in range(count + 1):
+            t = min(length, k * gap)
+            node.draw(int(x0 + ux * t), int(y0 + uy * t), RAIL_NODE_SIZE, RAIL_NODE_SIZE)
+        node.draw(int(x1), int(y1), RAIL_NODE_SIZE, RAIL_NODE_SIZE)
+
     def draw(self):
+        self._draw_rail()
         sz = _sz()
         for i in range(self.w):
             if self.w == 1:

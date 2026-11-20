@@ -157,6 +157,8 @@ class Player:
                 self._blast_elapsed += frame_time / (sprite.BLAST_DECAY * mult)
             else:
                 self._blast_air_elapsed += frame_time
+                self._blast_elapsed += (frame_time * sprite.BLAST_AIR_DECAY_RATIO
+                                        / sprite.BLAST_DECAY)
             ratio = max(0.0, 1.0 - self._blast_elapsed)
             self.vx = self._blast_vx * ratio
             left = pico2d.SDLK_LEFT in keys
