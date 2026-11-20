@@ -81,10 +81,13 @@ class Bomb:
         self.fuse = 0.0
         self.fuse_hold = False
         self.hold_elapsed = 0.0
+        self.pipe_cool = 0.0
         self.body_frame = 0.0
 
     def update(self, frame_time):
         self.body_frame = (self.body_frame + BODY_FPS * frame_time) % 2.0
+        if self.pipe_cool > 0.0:
+            self.pipe_cool -= frame_time
         if self.fuse_hold and self.state == FALLING and self.hold_elapsed < HOLD_LIMIT:
             self.hold_elapsed += frame_time
         else:

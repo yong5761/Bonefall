@@ -128,3 +128,15 @@ def draw_pads():
     for obj in _objects:
         if isinstance(obj, Pad):
             obj.draw()
+
+
+def get_pipes():
+    from pipe import Pipe
+    return [obj for obj in _objects if isinstance(obj, Pipe)]
+
+
+def draw_pipes():
+    from pipe import Pipe
+    for obj in _objects:
+        if isinstance(obj, Pipe):
+            obj.draw()
