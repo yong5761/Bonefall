@@ -46,6 +46,7 @@ SHEETS = {
     'bombs':            ('assets/bombs.png',            6),
     'bomb_push_fuse':   ('assets/bomb_push_fuse.png',   13),
     'bomb_pull_fuse':   ('assets/bomb_pull_fuse.png',   13),
+    'bomb_ice_fuse':    ('assets/bomb_ice_fuse.png',    13),
     'tiles':            ('assets/tiles.png',            20),
     'lever':            ('assets/lever.png',            48),
     'switch':           ('assets/switch.png',           48),

@@ -169,12 +169,8 @@ class Bomb:
         return False
 
     def draw(self):
-        frame_offset = self.bomb_type * 2
-        body_frame = frame_offset + int(self.body_frame)
-        path, _ = sprite.SHEETS['bombs']
-        sprite.draw_frame(path, body_frame, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-                          self.x + camera.ox, self.y + camera.oy)
-        fuse_key = 'bomb_pull_fuse' if self.bomb_type == 1 else 'bomb_push_fuse'
+        fuse_key = ('bomb_push_fuse', 'bomb_pull_fuse',
+                    'bomb_ice_fuse')[self.bomb_type]
         fuse_path, fuse_count = sprite.SHEETS[fuse_key]
         fuse_frame = int(min(self.fuse / FUSE_TIME * fuse_count, fuse_count - 1))
         sprite.draw_frame(fuse_path, fuse_frame, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
