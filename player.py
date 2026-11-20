@@ -103,13 +103,23 @@ class Player:
             left = pico2d.SDLK_LEFT in keys
             right = pico2d.SDLK_RIGHT in keys
             if left and not right:
-                self.vx = -MOVE_SPEED
+                plant_target = -MOVE_SPEED
                 self.flip = True
             elif right and not left:
-                self.vx = MOVE_SPEED
+                plant_target = MOVE_SPEED
                 self.flip = False
             else:
-                self.vx = 0.0
+                plant_target = 0.0
+            from tile import ice_at as _ice_at
+            if _ice_at(self.x, self.y - HALF_H):
+                step = sprite.ICE_PLAYER_ACCEL * frame_time
+                diff = plant_target - self.vx
+                if abs(diff) <= step:
+                    self.vx = plant_target
+                else:
+                    self.vx += step if diff > 0 else -step
+            else:
+                self.vx = plant_target
             on_ground = self._on_ground()
             if not on_ground:
                 self.vy += GRAVITY * frame_time
@@ -201,7 +211,12 @@ class Player:
 
         from tile import ice_at
         if self.state != JUMP and ice_at(self.x, self.y - HALF_H):
-            self.vx += (target_vx - self.vx) * sprite.ICE_PLAYER_ACCEL_MULT
+            step = sprite.ICE_PLAYER_ACCEL * frame_time
+            diff = target_vx - self.vx
+            if abs(diff) <= step:
+                self.vx = target_vx
+            else:
+                self.vx += step if diff > 0 else -step
         else:
             self.vx = target_vx
 
