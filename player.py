@@ -52,7 +52,16 @@ class Player:
                 self.frame = 0.0
             elif event.key == pico2d.SDLK_z and self.state not in (PLANT, BLAST):
                 import bomb
-                bomb.throw(self.x, self.y, self.flip)
+                target = None
+                for c in game_world.get_cannons():
+                    if c.in_reach(self.x, self.y):
+                        target = c
+                        break
+                if target is not None and not bomb.is_busy():
+                    bomb.reserve()
+                    target.load(bomb.get_type())
+                else:
+                    bomb.throw(self.x, self.y, self.flip)
                 self.state = PLANT
                 self.frame = 0.0
 

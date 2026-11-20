@@ -19,6 +19,7 @@ _ENTITY_PREFIXES = {
     'M': 'moving',
     'C': 'circle',
     'S': 'switch',
+    'K': 'cannon',
 }
 
 _COORD_COUNTS = {
@@ -28,6 +29,7 @@ _COORD_COUNTS = {
     'moving': (5, 6),
     'circle': (6, 7),
     'switch': (3,),
+    'cannon': (3,),
 }
 
 _STAGES = []
@@ -37,6 +39,7 @@ _LEVER_STARTS = []
 _MOVING_STARTS = []
 _CIRCLE_STARTS = []
 _SWITCH_STARTS = []
+_CANNON_STARTS = []
 _BG_NAMES = []
 
 
@@ -88,6 +91,7 @@ def _load_file(path):
     moving_starts = []
     circle_starts = []
     switch_starts = []
+    cannon_starts = []
     for li, line in enumerate(lines[1 + _GRID_ROWS:], start=2 + _GRID_ROWS):
         if line.strip() == '':
             continue
@@ -120,12 +124,14 @@ def _load_file(path):
             circle_starts.append(tuple(nums) + ((0,) if len(nums) == 6 else ()))
         elif kind == 'switch':
             switch_starts.append((nums[0], nums[1], nums[2]))
+        elif kind == 'cannon':
+            cannon_starts.append((nums[0], nums[1], nums[2]))
 
     if player_start is None:
         sys.exit(f'{fname}: P: 줄이 없다')
 
     return (bg_name, tiles, player_start, enemies, lever_start,
-            moving_starts, circle_starts, switch_starts)
+            moving_starts, circle_starts, switch_starts, cannon_starts)
 
 
 def _load_all():
@@ -141,7 +147,8 @@ def _load_all():
         sys.exit('stages/ 폴더에 .txt 파일이 없다')
     for path in paths:
         (bg_name, tiles, player_start, enemies, lever_start,
-         moving_starts, circle_starts, switch_starts) = _load_file(path)
+         moving_starts, circle_starts, switch_starts,
+         cannon_starts) = _load_file(path)
         _BG_NAMES.append(bg_name)
         _STAGES.append(tiles)
         _PLAYER_STARTS.append(player_start)
@@ -150,6 +157,7 @@ def _load_all():
         _MOVING_STARTS.append(moving_starts)
         _CIRCLE_STARTS.append(circle_starts)
         _SWITCH_STARTS.append(switch_starts)
+        _CANNON_STARTS.append(cannon_starts)
 
 
 _load_all()
@@ -203,3 +211,8 @@ def build_circles(idx=0):
 def build_switches(idx=0):
     from switch import Switch
     return [Switch(x, y, g) for x, y, g in _SWITCH_STARTS[idx]]
+
+
+def build_cannons(idx=0):
+    from cannon import Cannon
+    return [Cannon(x, y, angle) for x, y, angle in _CANNON_STARTS[idx]]

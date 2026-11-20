@@ -104,3 +104,15 @@ def draw_switches():
     for obj in _objects:
         if isinstance(obj, Switch):
             obj.draw()
+
+
+def get_cannons():
+    from cannon import Cannon
+    return [obj for obj in _objects if isinstance(obj, Cannon)]
+
+
+def draw_cannons():
+    from cannon import Cannon
+    for obj in _objects:
+        if isinstance(obj, Cannon):
+            obj.draw()

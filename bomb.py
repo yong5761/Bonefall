@@ -13,6 +13,7 @@ LANDED = 1
 
 _current_type = 0
 _active = None
+_reserved = False
 
 
 def get_type():
@@ -24,9 +25,28 @@ def toggle_type():
     _current_type = (_current_type + 1) % 3
 
 
+def is_busy():
+    return _active is not None or _reserved
+
+
+def reserve():
+    global _reserved
+    _reserved = True
+
+
+def launch(x, y, vx, vy, bomb_type):
+    global _active, _reserved
+    _reserved = False
+    if _active is not None:
+        return
+    b = Bomb(x, y, bomb_type, vx, vy)
+    _active = b
+    game_world.add(b)
+
+
 def throw(x, y, flip):
     global _active
-    if _active is None:
+    if _active is None and not _reserved:
         vx = -(sprite.THROW_SPEED_SRC * sprite.DRAW_SCALE) if flip else (sprite.THROW_SPEED_SRC * sprite.DRAW_SCALE)
         vy = sprite.THROW_VY_SRC * sprite.DRAW_SCALE
         b = Bomb(x, y, _current_type, vx, vy)
@@ -41,7 +61,8 @@ def _clear_active():
 
 
 def remove_active():
-    global _active
+    global _active, _reserved
+    _reserved = False
     if _active is not None:
         game_world.remove(_active)
     _clear_active()
