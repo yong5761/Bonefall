@@ -33,6 +33,8 @@ def _load_stage(idx):
     game_world.clear()
     for tile in stage.build_stage(idx):
         game_world.add(tile)
+    for mt in stage.build_moving(idx):
+        game_world.add(mt)
     game_world.set_player(_player)
     for e in stage.build_enemies(idx):
         game_world.add(e)

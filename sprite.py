@@ -7,6 +7,7 @@ IDLE_FPS = 24
 BLAST_SPEED_SRC = 600
 BLAST_DECAY = 0.4
 BLAST_AIR_LIMIT = 3.0
+MOVING_SPEED = 120.0
 HITSTOP_TIME = 0.05
 BLAST_RADIUS_SRC = 160
 FOOT_HALF_W_SRC = 8
@@ -44,7 +45,7 @@ SHEETS = {
     'bombs':            ('assets/bombs.png',            6),
     'bomb_push_fuse':   ('assets/bomb_push_fuse.png',   13),
     'bomb_pull_fuse':   ('assets/bomb_pull_fuse.png',   13),
-    'tiles':            ('assets/tiles.png',            16),
+    'tiles':            ('assets/tiles.png',            20),
     'lever':            ('assets/lever.png',            48),
 }
 

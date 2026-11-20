@@ -16,12 +16,21 @@ _ENTITY_PREFIXES = {
     'P': 'player',
     'E': 'enemy',
     'L': 'lever',
+    'M': 'moving',
+}
+
+_COORD_COUNTS = {
+    'player': 2,
+    'enemy': 2,
+    'lever': 2,
+    'moving': 5,
 }
 
 _STAGES = []
 _PLAYER_STARTS = []
 _ENEMY_STARTS = []
 _LEVER_STARTS = []
+_MOVING_STARTS = []
 _BG_NAMES = []
 
 
@@ -70,6 +79,7 @@ def _load_file(path):
     player_start = None
     lever_start = None
     enemies = []
+    moving_starts = []
     for li, line in enumerate(lines[1 + _GRID_ROWS:], start=2 + _GRID_ROWS):
         if line.strip() == '':
             continue
@@ -78,29 +88,31 @@ def _load_file(path):
         prefix = line[:line.index(':')].strip()
         if prefix not in _ENTITY_PREFIXES:
             sys.exit(f'{fname}:{li}: 알 수 없는 접두사 \'{prefix}\'')
+        kind = _ENTITY_PREFIXES[prefix]
         rest = line[line.index(':') + 1:].split(',')
-        if len(rest) != 2:
+        if len(rest) != _COORD_COUNTS[kind]:
             sys.exit(f'{fname}:{li}: 좌표 형식 오류')
         try:
-            x, y = int(rest[0].strip()), int(rest[1].strip())
+            nums = [int(v.strip()) for v in rest]
         except ValueError:
             sys.exit(f'{fname}:{li}: 좌표가 정수가 아니다')
-        kind = _ENTITY_PREFIXES[prefix]
         if kind == 'player':
             if player_start is not None:
                 sys.exit(f'{fname}:{li}: P: 줄이 둘 이상이다')
-            player_start = (x, y)
+            player_start = (nums[0], nums[1])
         elif kind == 'enemy':
-            enemies.append((x, y))
+            enemies.append((nums[0], nums[1]))
         elif kind == 'lever':
             if lever_start is not None:
                 sys.exit(f'{fname}:{li}: L: 줄이 둘 이상이다')
-            lever_start = (x, y)
+            lever_start = (nums[0], nums[1])
+        elif kind == 'moving':
+            moving_starts.append((nums[0], nums[1], nums[2], nums[3], nums[4]))
 
     if player_start is None:
         sys.exit(f'{fname}: P: 줄이 없다')
 
-    return bg_name, tiles, player_start, enemies, lever_start
+    return bg_name, tiles, player_start, enemies, lever_start, moving_starts
 
 
 def _load_all():
@@ -115,12 +127,13 @@ def _load_all():
     if not paths:
         sys.exit('stages/ 폴더에 .txt 파일이 없다')
     for path in paths:
-        bg_name, tiles, player_start, enemies, lever_start = _load_file(path)
+        bg_name, tiles, player_start, enemies, lever_start, moving_starts = _load_file(path)
         _BG_NAMES.append(bg_name)
         _STAGES.append(tiles)
         _PLAYER_STARTS.append(player_start)
         _ENEMY_STARTS.append(enemies)
         _LEVER_STARTS.append(lever_start)
+        _MOVING_STARTS.append(moving_starts)
 
 
 _load_all()
@@ -158,3 +171,8 @@ def build_lever(idx=0):
     if pos is None:
         return None
     return Lever(pos[0], pos[1])
+
+
+def build_moving(idx=0):
+    from tile import MovingTile
+    return [MovingTile(x, y, ex, ey, w) for x, y, ex, ey, w in _MOVING_STARTS[idx]]
