@@ -43,18 +43,18 @@ class Pad:
         fx.trigger_debris(self.x, self.y + 20.0)
         camera.shake(8.0, 0.18, 0.0, 1.0)
         if isinstance(obj, _bomb.Bomb):
-            obj.y = self.y + _bomb.BOMB_HALF
+            obj.y = self.y + _bomb.BOMB_HALF + 14.0
             obj.vy = BOUNCE
             obj.state = _bomb.FALLING
             obj.fuse_hold = True
             obj.fuse = 0.0
             return
         if isinstance(obj, _enemy.Enemy):
-            obj.y = self.y + _enemy.HALF_H
+            obj.y = self.y + _enemy.HALF_H + 14.0
             obj._enter_fall_grounded()
             obj.vy = BOUNCE
             return
-        obj.y = self.y + _player.HALF_H
+        obj.y = self.y + _player.HALF_H + 14.0
         obj.vy = BOUNCE
         if obj.state != _player.BLAST:
             obj.state = _player.JUMP

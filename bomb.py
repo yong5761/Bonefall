@@ -104,7 +104,7 @@ class Bomb:
                 _clear_active()
                 game_world.remove(self)
                 return
-            if self._on_ground():
+            if self.vy <= 0.0 and self._on_ground():
                 self._snap_to_ground()
                 self.fuse_hold = False
                 self.state = LANDED
