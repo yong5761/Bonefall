@@ -49,6 +49,7 @@ SHEETS = {
     'tiles':            ('assets/tiles.png',            20),
     'lever':            ('assets/lever.png',            48),
     'switch':           ('assets/switch.png',           48),
+    'jumppad':          ('assets/jumppad.png',          64),
 }
 
 _cache = {}

@@ -20,6 +20,7 @@ _ENTITY_PREFIXES = {
     'C': 'circle',
     'S': 'switch',
     'K': 'cannon',
+    'J': 'jumppad',
 }
 
 _COORD_COUNTS = {
@@ -30,6 +31,7 @@ _COORD_COUNTS = {
     'circle': (6, 7),
     'switch': (3,),
     'cannon': (3,),
+    'jumppad': (2,),
 }
 
 _STAGES = []
@@ -40,6 +42,7 @@ _MOVING_STARTS = []
 _CIRCLE_STARTS = []
 _SWITCH_STARTS = []
 _CANNON_STARTS = []
+_PAD_STARTS = []
 _BG_NAMES = []
 
 
@@ -92,6 +95,7 @@ def _load_file(path):
     circle_starts = []
     switch_starts = []
     cannon_starts = []
+    pad_starts = []
     for li, line in enumerate(lines[1 + _GRID_ROWS:], start=2 + _GRID_ROWS):
         if line.strip() == '':
             continue
@@ -126,12 +130,15 @@ def _load_file(path):
             switch_starts.append((nums[0], nums[1], nums[2]))
         elif kind == 'cannon':
             cannon_starts.append((nums[0], nums[1], nums[2]))
+        elif kind == 'jumppad':
+            pad_starts.append((nums[0], nums[1]))
 
     if player_start is None:
         sys.exit(f'{fname}: P: 줄이 없다')
 
     return (bg_name, tiles, player_start, enemies, lever_start,
-            moving_starts, circle_starts, switch_starts, cannon_starts)
+            moving_starts, circle_starts, switch_starts, cannon_starts,
+            pad_starts)
 
 
 def _load_all():
@@ -148,7 +155,7 @@ def _load_all():
     for path in paths:
         (bg_name, tiles, player_start, enemies, lever_start,
          moving_starts, circle_starts, switch_starts,
-         cannon_starts) = _load_file(path)
+         cannon_starts, pad_starts) = _load_file(path)
         _BG_NAMES.append(bg_name)
         _STAGES.append(tiles)
         _PLAYER_STARTS.append(player_start)
@@ -158,6 +165,7 @@ def _load_all():
         _CIRCLE_STARTS.append(circle_starts)
         _SWITCH_STARTS.append(switch_starts)
         _CANNON_STARTS.append(cannon_starts)
+        _PAD_STARTS.append(pad_starts)
 
 
 _load_all()
@@ -216,3 +224,8 @@ def build_switches(idx=0):
 def build_cannons(idx=0):
     from cannon import Cannon
     return [Cannon(x, y, angle) for x, y, angle in _CANNON_STARTS[idx]]
+
+
+def build_pads(idx=0):
+    from pad import Pad
+    return [Pad(x, y) for x, y in _PAD_STARTS[idx]]

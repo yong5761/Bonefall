@@ -116,3 +116,15 @@ def draw_cannons():
     for obj in _objects:
         if isinstance(obj, Cannon):
             obj.draw()
+
+
+def get_pads():
+    from pad import Pad
+    return [obj for obj in _objects if isinstance(obj, Pad)]
+
+
+def draw_pads():
+    from pad import Pad
+    for obj in _objects:
+        if isinstance(obj, Pad):
+            obj.draw()

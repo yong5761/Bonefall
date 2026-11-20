@@ -40,6 +40,7 @@ def launch(x, y, vx, vy, bomb_type):
     if _active is not None:
         return
     b = Bomb(x, y, bomb_type, vx, vy)
+    b.fuse_hold = True
     _active = b
     game_world.add(b)
 
@@ -77,11 +78,15 @@ class Bomb:
         self.bomb_type = bomb_type
         self.state = FALLING
         self.fuse = 0.0
+        self.fuse_hold = False
         self.body_frame = 0.0
 
     def update(self, frame_time):
         self.body_frame = (self.body_frame + BODY_FPS * frame_time) % 2.0
-        self.fuse += frame_time
+        if self.fuse_hold and self.state == FALLING:
+            pass
+        else:
+            self.fuse += frame_time
 
         if self.fuse >= FUSE_TIME:
             import explosion
@@ -101,6 +106,7 @@ class Bomb:
                 return
             if self._on_ground():
                 self._snap_to_ground()
+                self.fuse_hold = False
                 self.state = LANDED
                 if not self._on_ice():
                     self.vx = 0.0
@@ -111,6 +117,7 @@ class Bomb:
             prev_y = self.y
             self.y += self.vy * frame_time
             if self.vy <= 0 and self._try_land(prev_y):
+                self.fuse_hold = False
                 self.state = LANDED
                 if not self._on_ice():
                     self.vx = 0.0

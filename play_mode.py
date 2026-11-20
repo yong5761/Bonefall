@@ -44,6 +44,8 @@ def _load_stage(idx):
         game_world.add(sw)
     for cn in stage.build_cannons(idx):
         game_world.add(cn)
+    for pd in stage.build_pads(idx):
+        game_world.add(pd)
     game_world.set_player(_player)
     for e in stage.build_enemies(idx):
         game_world.add(e)
@@ -131,6 +133,7 @@ def render():
     game_world.draw_levers()
     game_world.draw_switches()
     game_world.draw_cannons()
+    game_world.draw_pads()
     fx.draw_all_shadows()
     game_world.draw_enemies()
     game_world.draw_bombs()
