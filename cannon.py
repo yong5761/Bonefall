@@ -10,11 +10,11 @@ REACH = 150.0
 
 BASE = 'assets/cannon_base.png'
 BARREL = 'assets/cannon_barrel.png'
-BASE_W = 64
-BASE_H = 40
-BARREL_W = 72
-BARREL_H = 28
-PIVOT_SRC = 10.0
+BASE_W = 76
+BASE_H = 48
+BARREL_W = 80
+BARREL_H = 44
+PIVOT_SRC = 16.0
 
 
 class Cannon:
