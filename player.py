@@ -112,7 +112,8 @@ class Player:
                 plant_target = 0.0
             from tile import ice_at as _ice_at
             if _ice_at(self.x, self.y - HALF_H):
-                step = sprite.ICE_PLAYER_ACCEL * frame_time
+                rate = sprite.ICE_PLAYER_DECEL if plant_target == 0.0 else sprite.ICE_PLAYER_ACCEL
+                step = rate * frame_time
                 diff = plant_target - self.vx
                 if abs(diff) <= step:
                     self.vx = plant_target
@@ -211,7 +212,8 @@ class Player:
 
         from tile import ice_at
         if self.state != JUMP and ice_at(self.x, self.y - HALF_H):
-            step = sprite.ICE_PLAYER_ACCEL * frame_time
+            rate = sprite.ICE_PLAYER_DECEL if target_vx == 0.0 else sprite.ICE_PLAYER_ACCEL
+            step = rate * frame_time
             diff = target_vx - self.vx
             if abs(diff) <= step:
                 self.vx = target_vx
