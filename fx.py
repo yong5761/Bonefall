@@ -21,7 +21,6 @@ _DUST_LIFETIME = 0.35
 _DEBRIS_LIFETIME = 0.5
 
 _flash_elapsed = 0.0
-_rail_phase = 0.0
 _flash_duration = 0.0
 
 _afterimage_timer = 0.0
@@ -62,9 +61,6 @@ def trigger_debris(x, y):
 
 def update(frame_time):
     global _flash_elapsed, _afterimage_timer, _player_airborne, _player_prev_vy
-    global _rail_phase
-
-    _rail_phase += frame_time
 
     if _flash_elapsed < _flash_duration:
         _flash_elapsed += frame_time
@@ -228,7 +224,6 @@ def _draw_light(img, x, y, size, alpha, color=(255, 186, 92)):
 
 
 RAIL_COLOR = (96, 196, 255)
-RAIL_PULSE_SPEED = 420.0
 
 
 def draw_rail_lights():
@@ -250,16 +245,10 @@ def draw_rail_lights():
         count = int(length / 160.0)
         for k in range(count + 1):
             t = min(length, k * 160.0)
-            glow = 38 + 16 * math.sin(_rail_phase * 2.6 + k * 0.9)
-            _draw_light(img, x0 + ux * t, y0 + uy * t, 44, int(glow), RAIL_COLOR)
-        span = length + 240.0
-        head = (_rail_phase * RAIL_PULSE_SPEED) % span
-        for trail, size, peak in ((0.0, 72, 170), (22.0, 58, 110), (44.0, 46, 60),
-                                  (66.0, 38, 32)):
-            t = head - trail
-            if t < 0.0 or t > length:
+            wx = wx0 + (wx1 - wx0) * (t / length)
+            if tl.left_x <= wx <= tl.right_x:
                 continue
-            _draw_light(img, x0 + ux * t, y0 + uy * t, size, peak, RAIL_COLOR)
+            _draw_light(img, x0 + ux * t, y0 + uy * t, 56, 78, RAIL_COLOR)
 
 
 def draw_afterimages():
