@@ -6,8 +6,8 @@ import fx
 import game_world
 
 EXIT_SPEED = 760.0
-MOUTH_W = 48
-MOUTH_H = 48
+MOUTH_W = 64
+MOUTH_H = 64
 CATCH = 44.0
 MOUTH_OFFSET = 36.0
 
