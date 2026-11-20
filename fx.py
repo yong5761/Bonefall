@@ -21,6 +21,7 @@ _DUST_LIFETIME = 0.35
 _DEBRIS_LIFETIME = 0.5
 
 _flash_elapsed = 0.0
+_rail_phase = 0.0
 _flash_duration = 0.0
 
 _afterimage_timer = 0.0
@@ -61,6 +62,9 @@ def trigger_debris(x, y):
 
 def update(frame_time):
     global _flash_elapsed, _afterimage_timer, _player_airborne, _player_prev_vy
+    global _rail_phase
+
+    _rail_phase += frame_time
 
     if _flash_elapsed < _flash_duration:
         _flash_elapsed += frame_time
@@ -210,17 +214,51 @@ def draw_lever_lights():
             _draw_light(img, gx, gy, int(140 + 560 * q), int(peak * (1.0 - q)))
 
 
-def _draw_light(img, x, y, size, alpha):
+def _draw_light(img, x, y, size, alpha, color=(255, 186, 92)):
     alpha = max(0, min(255, alpha))
     if alpha <= 0:
         return
     pico2d.SDL_SetTextureBlendMode(img.texture, pico2d.SDL_BLENDMODE_ADD)
-    pico2d.SDL_SetTextureColorMod(img.texture, 255, 186, 92)
+    pico2d.SDL_SetTextureColorMod(img.texture, color[0], color[1], color[2])
     pico2d.SDL_SetTextureAlphaMod(img.texture, alpha)
     img.clip_composite_draw(0, 0, 256, 256, 0, '', x, y, size, size)
     pico2d.SDL_SetTextureColorMod(img.texture, 255, 255, 255)
     pico2d.SDL_SetTextureBlendMode(img.texture, pico2d.SDL_BLENDMODE_BLEND)
     pico2d.SDL_SetTextureAlphaMod(img.texture, 255)
+
+
+RAIL_COLOR = (96, 196, 255)
+RAIL_PULSE_SPEED = 420.0
+
+
+def draw_rail_lights():
+    from tile import MovingTile
+    img = sprite.load(_LIGHT_PATH)
+    for tl in game_world.get_tiles():
+        if not isinstance(tl, MovingTile):
+            continue
+        wx0, wy0, wx1, wy1 = tl.rail_endpoints()
+        x0 = wx0 + camera.ox
+        y0 = wy0 + camera.oy
+        x1 = wx1 + camera.ox
+        y1 = wy1 + camera.oy
+        length = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
+        if length < 1.0:
+            continue
+        ux = (x1 - x0) / length
+        uy = (y1 - y0) / length
+        count = int(length / 160.0)
+        for k in range(count + 1):
+            t = min(length, k * 160.0)
+            glow = 54 + 22 * math.sin(_rail_phase * 2.6 + k * 0.9)
+            _draw_light(img, x0 + ux * t, y0 + uy * t, 78, int(glow), RAIL_COLOR)
+        span = length + 240.0
+        head = (_rail_phase * RAIL_PULSE_SPEED) % span
+        for trail, size, peak in ((0.0, 130, 150), (34.0, 100, 90), (68.0, 80, 50)):
+            t = head - trail
+            if t < 0.0 or t > length:
+                continue
+            _draw_light(img, x0 + ux * t, y0 + uy * t, size, peak, RAIL_COLOR)
 
 
 def draw_afterimages():

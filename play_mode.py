@@ -125,6 +125,7 @@ def render():
     fx.draw_debris()
     fx.draw_explosion_lights()
     fx.draw_lever_lights()
+    fx.draw_rail_lights()
     fx.draw_vignette()
     fx.draw_flash()
     _draw_hud()

@@ -141,13 +141,20 @@ class MovingTile(Tile):
                 obj.x += dx
                 obj.y += dy
 
-    def _draw_rail(self):
+    def rail_endpoints(self):
         sz = _sz()
         half = self.w * sz / 2.0
-        x0 = self._sx + half + camera.ox
-        y0 = self._sy - sz / 4.0 + camera.oy
-        x1 = self._sx + self._dir_x * self._dist + half + camera.ox
-        y1 = self._sy + self._dir_y * self._dist - sz / 4.0 + camera.oy
+        return (self._sx + half,
+                self._sy - sz / 4.0,
+                self._sx + self._dir_x * self._dist + half,
+                self._sy + self._dir_y * self._dist - sz / 4.0)
+
+    def _draw_rail(self):
+        x0, y0, x1, y1 = self.rail_endpoints()
+        x0 += camera.ox
+        y0 += camera.oy
+        x1 += camera.ox
+        y1 += camera.oy
         length = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
         if length < 1.0:
             return
