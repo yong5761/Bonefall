@@ -145,9 +145,9 @@ class MovingTile(Tile):
         sz = _sz()
         half = self.w * sz / 2.0
         x0 = self._sx + half + camera.ox
-        y0 = self._sy - sz / 2.0 + camera.oy
+        y0 = self._sy - sz / 4.0 + camera.oy
         x1 = self._sx + self._dir_x * self._dist + half + camera.ox
-        y1 = self._sy + self._dir_y * self._dist - sz / 2.0 + camera.oy
+        y1 = self._sy + self._dir_y * self._dist - sz / 4.0 + camera.oy
         length = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
         if length < 1.0:
             return
