@@ -23,10 +23,13 @@ _stage_idx = 0
 _prev_ticks = 0
 _keys = None
 _hud_font = None
+_intro_font = None
+_intro_elapsed = 99.0
+_INTRO_TIME = 1.6
 
 
 def _load_stage(idx):
-    global _stage_idx
+    global _stage_idx, _intro_elapsed
     _stage_idx = idx
     background.set_stage(idx)
     bomb.remove_active()
@@ -58,12 +61,14 @@ def _load_stage(idx):
     _player.frame = 0.0
     _player._control_vx = 0.0
     _player.died = False
+    _intro_elapsed = 0.0
     fx.clear_particles()
 
 
 def init():
-    global _player, _prev_ticks, _keys, _hud_font
+    global _player, _prev_ticks, _keys, _hud_font, _intro_font
     _hud_font = pico2d.load_font(_FONT_PATH, 22)
+    _intro_font = pico2d.load_font(_FONT_PATH, 64)
     _keys = set()
     _prev_ticks = pico2d.SDL_GetTicks()
     sx, sy = stage.get_player_start(start_stage)
@@ -72,18 +77,22 @@ def init():
 
 
 def finish():
-    global _player, _hud_font
+    global _player, _hud_font, _intro_font
     bomb.remove_active()
     game_world.clear()
     _player = None
     _hud_font = None
+    _intro_font = None
 
 
 def update():
-    global _prev_ticks
+    global _prev_ticks, _intro_elapsed
     ticks = pico2d.SDL_GetTicks()
     frame_time = min((ticks - _prev_ticks) / 1000.0, 0.05)
     _prev_ticks = ticks
+
+    if _intro_elapsed < _INTRO_TIME:
+        _intro_elapsed += frame_time
 
     if transition.update(frame_time):
         sound.play('stage_clear')
@@ -145,6 +154,7 @@ def render():
 
 
 def _draw_hud():
+    sprite.load('assets/hud_bar.png').draw(960, 1016)
     bomb_img = sprite.load(('assets/ui_bomb_push.png',
                             'assets/ui_bomb_pull.png',
                             'assets/ui_bomb_ice.png')[bomb.get_type()])
@@ -153,8 +163,27 @@ def _draw_hud():
     sprite.load('assets/ui_panel.png').draw(250, 990)
     sprite.load('assets/ui_panel.png').draw(1830, 990)
     color = (0xEC, 0xE8, 0xE1)
-    ui.draw_text_outlined(_hud_font, 250, 990, f'적 {len(game_world.get_enemies())}', color)
+    left = len(game_world.get_enemies())
+    if 0 < left <= 5:
+        skull = sprite.load('assets/ui_skull.png')
+        start = 250 - (left - 1) * 17
+        for i in range(left):
+            skull.draw(start + i * 34, 990)
+    elif left > 5:
+        ui.draw_text_outlined(_hud_font, 250, 990, f'적 {left}', color)
     ui.draw_text_outlined(_hud_font, 1830, 990, f'STAGE {_stage_idx + 1}', color)
+    _draw_intro()
+
+
+def _draw_intro():
+    if _intro_elapsed >= _INTRO_TIME:
+        return
+    fade_start = _INTRO_TIME - 0.6
+    t = 0.0 if _intro_elapsed < fade_start else (_intro_elapsed - fade_start) / 0.6
+    base = (0xEC, 0xE8, 0xE1)
+    dark = (0x1A, 0x14, 0x11)
+    color = tuple(int(base[i] + (dark[i] - base[i]) * t) for i in range(3))
+    ui.draw_text_outlined(_intro_font, 960, 640, f'STAGE {_stage_idx + 1}', color)
 
 
 def handle_events():
