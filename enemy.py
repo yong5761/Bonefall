@@ -1,4 +1,5 @@
 import random
+import pico2d
 import sprite
 import camera
 import game_world
@@ -24,6 +25,12 @@ GRAVITY = -2000.0
 
 
 class Enemy:
+    WALK_SPEED = ENEMY_WALK_SPEED
+    BLAST_MULT = 1.0
+    DRAW_SCALE_MULT = 1.0
+    SHEET_WALK = 'enemy_walk'
+    BODY_TINT = None
+
     def __init__(self, x, y):
         self.x = float(x)
         self.y = float(y)
@@ -42,13 +49,17 @@ class Enemy:
         self._fade_elapsed = 0.0
         self._slide_vx = 0.0
         self._slide_progress = 0.0
-        self._frozen_sheet = 'enemy_walk'
+        self._frozen_sheet = self.SHEET_WALK
         self._freeze_remaining = 0.0
         self._freeze_elapsed = 0.0
+        self.half_w = int(ENEMY_HALF_W * self.DRAW_SCALE_MULT)
+        self.half_h = int(HALF_H * self.DRAW_SCALE_MULT)
         tiles = game_world.get_tiles()
         self._fade_threshold_y = min((t.surface_y for t in tiles), default=0.0)
 
     def receive_blast(self, vx, vy):
+        vx *= self.BLAST_MULT
+        vy *= self.BLAST_MULT
         if self.state == FALL:
             return
         if self.state == FROZEN:
@@ -82,7 +93,7 @@ class Enemy:
         if self.state == FALL:
             return
         if self.state != FROZEN:
-            self._frozen_sheet = 'enemy_walk' if self.state == WALK else 'enemy_collapse'
+            self._frozen_sheet = self.SHEET_WALK if self.state == WALK else 'enemy_collapse'
         self.state = FROZEN
         self._freeze_remaining = sprite.FREEZE_TIME
         self._freeze_elapsed = 0.0
@@ -110,7 +121,7 @@ class Enemy:
             return
         if self._slide_vx != 0.0:
             from tile import ice_at
-            mult = sprite.ICE_SLIDE_MULT if ice_at(self.x, self.y - HALF_H) else 1.0
+            mult = sprite.ICE_SLIDE_MULT if ice_at(self.x, self.y - self.half_h) else 1.0
             self._freeze_elapsed += frame_time / (sprite.BLAST_DECAY * sprite.ICE_DECAY_MULT * mult)
             ratio = max(0.0, 1.0 - self._freeze_elapsed)
             self.x += self._slide_vx * ratio * frame_time
@@ -128,12 +139,12 @@ class Enemy:
         self._fall_elapsed = 0.0
 
     def _update_walk(self, frame_time):
-        walk_count = sprite.SHEETS['enemy_walk'][1]
+        walk_count = sprite.SHEETS[self.SHEET_WALK][1]
         self.frame = (self.frame + sprite.WALK_FPS * frame_time) % walk_count
         if not self._on_ground():
             self._enter_fall_grounded()
             return
-        vx = -ENEMY_WALK_SPEED if self.flip else ENEMY_WALK_SPEED
+        vx = -self.WALK_SPEED if self.flip else self.WALK_SPEED
         prev_x = self.x
         self.x += vx * frame_time
         if not self._on_ground():
@@ -143,7 +154,7 @@ class Enemy:
     def _update_collapse(self, frame_time):
         if self._slide_vx != 0.0:
             from tile import ice_at
-            mult = sprite.ICE_SLIDE_MULT if ice_at(self.x, self.y - HALF_H) else 1.0
+            mult = sprite.ICE_SLIDE_MULT if ice_at(self.x, self.y - self.half_h) else 1.0
             self._slide_progress += frame_time / (sprite.BLAST_DECAY * mult)
             ratio = max(0.0, 1.0 - self._slide_progress)
             self.x += self._slide_vx * ratio * frame_time
@@ -172,13 +183,13 @@ class Enemy:
         prev_y = self.y
         self.x += self.vx * frame_time
         self.y += self.vy * frame_time
-        prev_feet = prev_y - HALF_H
-        curr_feet = self.y - HALF_H
+        prev_feet = prev_y - self.half_h
+        curr_feet = self.y - self.half_h
         for tile in game_world.get_tiles():
-            if self.x + ENEMY_HALF_W <= tile.left_x or self.x - ENEMY_HALF_W >= tile.right_x:
+            if self.x + self.half_w <= tile.left_x or self.x - self.half_w >= tile.right_x:
                 continue
             if prev_feet >= tile.surface_y and curr_feet <= tile.surface_y:
-                self.y = tile.surface_y + HALF_H
+                self.y = tile.surface_y + self.half_h
                 self.vy = 0.0
                 self._slide_vx = self.vx
                 self._slide_progress = 0.0
@@ -200,24 +211,38 @@ class Enemy:
         fall_frames = sprite.SHEETS['enemy_fall'][1]
         t = min(self._fall_elapsed / FALL_DURATION, 1.0)
         self.frame = t * (fall_frames - 1)
-        if self.y < -HALF_H or self._fall_elapsed > 5.0:
+        if self.y < -self.half_h or self._fall_elapsed > 5.0:
             game_world.remove(self)
 
     def _on_ground(self):
-        feet_y = self.y - HALF_H
+        feet_y = self.y - self.half_h
         for tile in game_world.get_tiles():
-            if self.x + ENEMY_HALF_W <= tile.left_x or self.x - ENEMY_HALF_W >= tile.right_x:
+            if self.x + self.half_w <= tile.left_x or self.x - self.half_w >= tile.right_x:
                 continue
             if abs(feet_y - tile.surface_y) <= 4:
                 return True
         return False
 
+    def _tint_on(self, img, tint):
+        if tint is not None:
+            pico2d.SDL_SetTextureColorMod(img.texture, tint[0], tint[1], tint[2])
+
+    def _tint_off(self, img):
+        pico2d.SDL_SetTextureColorMod(img.texture, 255, 255, 255)
+
     def draw(self):
         draw_y = self.y + camera.oy - sprite.FOOT_MARGIN * sprite.DRAW_SCALE
+        out = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * self.DRAW_SCALE_MULT)
         if self.state == WALK:
-            path, _ = sprite.SHEETS['enemy_walk']
-            sprite.draw_frame(path, int(self.frame), sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-                              self.x + camera.ox, draw_y, self.flip)
+            path, _ = sprite.SHEETS[self.SHEET_WALK]
+            img = sprite.load(path)
+            self._tint_on(img, self.BODY_TINT)
+            img.clip_composite_draw(
+                int(self.frame) * sprite.PLAYER_FRAME, 0,
+                sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
+                0, 'h' if self.flip else '',
+                self.x + camera.ox, draw_y, out, out)
+            self._tint_off(img)
         elif self.state == COLLAPSE:
             path, _ = sprite.SHEETS['enemy_collapse']
             shake_x = 0.0
@@ -225,25 +250,48 @@ class Enemy:
             if not self._reviving and self._collapse_elapsed >= COLLAPSE_TIME - WARNING_TIME:
                 shake_x = random.uniform(-2, 2) * sprite.DRAW_SCALE
                 shake_y = random.uniform(-2, 2) * sprite.DRAW_SCALE
-            sprite.draw_frame(path, int(self.frame), sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-                              self.x + camera.ox + shake_x, draw_y + shake_y, self.flip)
+            img = sprite.load(path)
+            self._tint_on(img, self.BODY_TINT)
+            img.clip_composite_draw(
+                int(self.frame) * sprite.PLAYER_FRAME, 0,
+                sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
+                0, 'h' if self.flip else '',
+                self.x + camera.ox + shake_x, draw_y + shake_y, out, out)
+            self._tint_off(img)
         elif self.state == FROZEN:
             path, _ = sprite.SHEETS[self._frozen_sheet]
-            sprite.draw_frame(path, int(self.frame), sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-                              self.x + camera.ox, draw_y, self.flip,
-                              tint=sprite.FROZEN_TINT)
+            img = sprite.load(path)
+            t = sprite.FROZEN_TINT
+            pico2d.SDL_SetTextureColorMod(img.texture, t[0], t[1], t[2])
+            img.clip_composite_draw(
+                int(self.frame) * sprite.PLAYER_FRAME, 0,
+                sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
+                0, 'h' if self.flip else '',
+                self.x + camera.ox, draw_y, out, out)
+            self._tint_off(img)
         elif self.state == FALL:
             path, _ = sprite.SHEETS['enemy_fall']
+            img = sprite.load(path)
             if self._below_threshold:
-                t = min(self._fade_elapsed / FALL_DURATION, 1.0)
-                scale = FALL_SCALE_START + (FALL_SCALE_END - FALL_SCALE_START) * t
-                out_w = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * scale)
-                out_h = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * scale)
-                img = sprite.load(path)
-                left = int(self.frame) * sprite.PLAYER_FRAME
-                img.clip_composite_draw(left, 0, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-                                        0, 'h' if self.flip else '',
-                                        self.x + camera.ox, draw_y, out_w, out_h)
+                tt = min(self._fade_elapsed / FALL_DURATION, 1.0)
+                scale = FALL_SCALE_START + (FALL_SCALE_END - FALL_SCALE_START) * tt
+                fw = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * scale * self.DRAW_SCALE_MULT)
+                self._tint_on(img, self.BODY_TINT)
+                img.clip_composite_draw(
+                    int(self.frame) * sprite.PLAYER_FRAME, 0,
+                    sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
+                    0, 'h' if self.flip else '',
+                    self.x + camera.ox, draw_y, fw, fw)
+                self._tint_off(img)
             else:
-                sprite.draw_frame(path, int(self.frame), sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-                                  self.x + camera.ox, draw_y, self.flip)
+                self._tint_on(img, self.BODY_TINT)
+                img.clip_composite_draw(
+                    int(self.frame) * sprite.PLAYER_FRAME, 0,
+                    sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
+                    0, 'h' if self.flip else '',
+                    self.x + camera.ox, draw_y, out, out)
+                self._tint_off(img)
+        self.draw_overlay(draw_y)
+
+    def draw_overlay(self, draw_y):
+        pass
