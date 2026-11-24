@@ -293,5 +293,5 @@ class Enemy:
                 self._tint_off(img)
         self.draw_overlay(draw_y)
 
-    def draw_overlay(self, draw_y):
+    def draw_overlay(self, draw_y, shake_x=0.0):
         pass

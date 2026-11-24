@@ -36,7 +36,7 @@ class Shot:
                     and abs(self.y - p.y) < half + HALF_H):
                 blast = sprite.SHOT_BLAST_SRC * sprite.DRAW_SCALE
                 p.receive_blast(math.cos(self._angle) * blast,
-                                math.sin(self._angle) * blast)
+                                math.sin(self._angle) * blast * 0.3)
                 game_world.remove(self)
                 return
         from bomb import Bomb, BOMB_HALF, FALLING
@@ -45,8 +45,10 @@ class Shot:
                     and abs(self.y - b.y) < half + BOMB_HALF):
                 push = sprite.SHOT_BLAST_SRC * sprite.DRAW_SCALE * 0.5
                 b.vx = math.cos(self._angle) * push
-                b.vy = math.sin(self._angle) * push
+                b.vy = math.sin(self._angle) * push * 0.3
                 b.state = FALLING
+                b.fuse_hold = True
+                b.hold_elapsed = 0.0
                 game_world.remove(self)
                 return
 

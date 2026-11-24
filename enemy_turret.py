@@ -81,7 +81,7 @@ class TurretEnemy(Enemy):
         my = self.y + math.sin(self._aim_angle) * muzzle_off
         game_world.add(Shot(mx, my, self._aim_angle))
 
-    def draw_overlay(self, draw_y):
+    def draw_overlay(self, draw_y, shake_x=0.0):
         s = sprite.DRAW_SCALE
         bsz = int(sprite.PLAYER_FRAME * s)
         base_path, _ = sprite.SHEETS['enemy_turret_base']

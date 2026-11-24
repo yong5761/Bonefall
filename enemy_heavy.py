@@ -79,11 +79,11 @@ class HeavyEnemy(Enemy):
                 0, 'h' if self.flip else '',
                 int(self.x + camera.ox + shake_x), int(draw_y), out, out)
             pico2d.SDL_SetTextureColorMod(img.texture, 255, 255, 255)
-            self.draw_overlay(draw_y)
+            self.draw_overlay(draw_y, shake_x)
         else:
             super().draw()
 
-    def draw_overlay(self, draw_y):
+    def draw_overlay(self, draw_y, shake_x=0.0):
         path, _ = sprite.SHEETS['heavy_armor']
         img = sprite.load(path)
         out = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * self.DRAW_SCALE_MULT)
@@ -94,6 +94,6 @@ class HeavyEnemy(Enemy):
         img.clip_composite_draw(
             0, 0, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
             0, 'h' if self.flip else '',
-            int(self.x + camera.ox), int(draw_y), out, out)
+            int(self.x + camera.ox + shake_x), int(draw_y), out, out)
         if flashing:
             pico2d.SDL_SetTextureColorMod(img.texture, 255, 255, 255)
