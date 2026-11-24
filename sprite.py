@@ -67,8 +67,6 @@ SHEETS = {
     'switch':           ('assets/switch.png',           48),
     'jumppad':          ('assets/jumppad.png',          64),
     'pipe_mouth':       ('assets/pipe_mouth.png',       64),
-    'enemy_turret_base': ('assets/enemy_turret_base.png', 1),
-    'turret_barrel':     ('assets/turret_barrel.png',     1),
     'shot':              ('assets/shot.png',              1),
     'heavy_armor':       ('assets/heavy_armor.png',       1),
 }

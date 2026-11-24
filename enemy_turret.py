@@ -5,11 +5,17 @@ import camera
 import game_world
 from enemy import Enemy
 
-_BW = 64
-_BH = 28
+_BASE    = 'assets/cannon_base.png'
+_BARREL  = 'assets/cannon_barrel.png'
+_BASE_W, _BASE_H     = 76, 48
+_BARREL_W, _BARREL_H = 80, 44
 _PIVOT_SRC = 8
 _AIM_ROT_SPEED = 2.0
-_PIVOT_DY = -24.0
+_PIVOT_DY = -40.0
+_BASE_DY  = -52.0
+
+_DARK_TINT = (150, 140, 130)
+_TELE_TINT = (255, 180, 60)
 
 
 class TurretEnemy(Enemy):
@@ -78,7 +84,7 @@ class TurretEnemy(Enemy):
     def _fire(self):
         from shot import Shot
         s = sprite.DRAW_SCALE
-        muzzle_off = (_BW - _PIVOT_SRC) * s
+        muzzle_off = (_BARREL_W - _PIVOT_SRC) * s
         pivot_wy = self.y - sprite.FOOT_MARGIN * sprite.DRAW_SCALE + _PIVOT_DY
         mx = self.x + math.cos(self._aim_angle) * muzzle_off
         my = pivot_wy + math.sin(self._aim_angle) * muzzle_off
@@ -86,23 +92,22 @@ class TurretEnemy(Enemy):
 
     def draw_overlay(self, draw_y, shake_x=0.0):
         s = sprite.DRAW_SCALE
-        bsz = int(sprite.PLAYER_FRAME * s)
-        base_path, _ = sprite.SHEETS['enemy_turret_base']
-        sprite.load(base_path).clip_composite_draw(
-            0, 0, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-            0, '',
-            int(self.x + camera.ox), int(draw_y), bsz, bsz)
-        barrel_path, _ = sprite.SHEETS['turret_barrel']
-        barrel_img = sprite.load(barrel_path)
+        base_img = sprite.load(_BASE)
+        pico2d.SDL_SetTextureColorMod(base_img.texture, *_DARK_TINT)
+        base_img.draw(
+            int(self.x + camera.ox), int(draw_y + _BASE_DY),
+            int(_BASE_W * s), int(_BASE_H * s))
+        pico2d.SDL_SetTextureColorMod(base_img.texture, 255, 255, 255)
+
+        barrel_img = sprite.load(_BARREL)
+        tint = _TELE_TINT if self._telegraphing else _DARK_TINT
+        pico2d.SDL_SetTextureColorMod(barrel_img.texture, *tint)
         pivot_y = draw_y + _PIVOT_DY
-        off = (_BW / 2.0 - _PIVOT_SRC) * s
+        off = (_BARREL_W / 2.0 - _PIVOT_SRC) * s
         cx = self.x + math.cos(self._aim_angle) * off
         cy = pivot_y + math.sin(self._aim_angle) * off
-        if self._telegraphing:
-            pico2d.SDL_SetTextureColorMod(barrel_img.texture, 255, 180, 60)
         barrel_img.clip_composite_draw(
-            0, 0, _BW, _BH, self._aim_angle, '',
+            0, 0, _BARREL_W, _BARREL_H, self._aim_angle, '',
             int(cx + camera.ox), int(cy),
-            int(_BW * s), int(_BH * s))
-        if self._telegraphing:
-            pico2d.SDL_SetTextureColorMod(barrel_img.texture, 255, 255, 255)
+            int(_BARREL_W * s), int(_BARREL_H * s))
+        pico2d.SDL_SetTextureColorMod(barrel_img.texture, 255, 255, 255)
