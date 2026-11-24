@@ -62,16 +62,13 @@ def make_shot(path, w=16, h=16):
 
 def make_scenery_mid(path, w=1920, h=1080):
     PILLAR_CX = [300, 960, 1620]
-    PILLAR_W = 110
+    PILLAR_W = 150
     PILLAR_EDGE = 20
-    ARCH_THICK = 40
-    ARCH_NY_TOP = 0.08
-    ARCH_NY_BOT = 0.30
     FADE_START_NY = 0.40
     FADE_END_NY = 0.55
-    BASE_ALPHA = 130
+    BASE_ALPHA = 175
     EDGE_ALPHA = 70
-    SR, SG, SB = 14, 20, 34
+    SR, SG, SB = 10, 14, 24
 
     rows = []
     for y in range(h):
@@ -82,7 +79,6 @@ def make_scenery_mid(path, w=1920, h=1080):
             continue
         for x in range(w):
             a = 0
-            # pillars
             for pcx in PILLAR_CX:
                 dx = abs(x - pcx)
                 if dx < PILLAR_W / 2:
@@ -91,38 +87,10 @@ def make_scenery_mid(path, w=1920, h=1080):
                         col_a = int(EDGE_ALPHA + (BASE_ALPHA - EDGE_ALPHA) * dist_edge / PILLAR_EDGE)
                     else:
                         col_a = BASE_ALPHA
-                    # fade out toward bottom
                     if ny >= FADE_START_NY:
                         t = (ny - FADE_START_NY) / (FADE_END_NY - FADE_START_NY)
                         col_a = int(col_a * (1.0 - t))
                     a = max(a, col_a)
-            # arches between adjacent pillar pairs
-            for i in range(len(PILLAR_CX) - 1):
-                ax1, ax2 = PILLAR_CX[i], PILLAR_CX[i + 1]
-                arc_cx = (ax1 + ax2) / 2.0
-                arc_rx = (ax2 - ax1) / 2.0
-                arc_cy_ny = ARCH_NY_TOP
-                arc_ry_ny = ARCH_NY_BOT - ARCH_NY_TOP
-                # ellipse: ((x-arc_cx)/arc_rx)^2 + ((ny-arc_cy_ny)/arc_ry_ny)^2
-                nx_norm = (x - arc_cx) / arc_rx
-                ny_norm = (ny - arc_cy_ny) / arc_ry_ny
-                r2 = nx_norm ** 2 + ny_norm ** 2
-                # ring of thickness ARCH_THICK pixels mapped to ny space
-                thick_ny = ARCH_THICK / h
-                outer_scale = 1.0
-                inner_scale = 1.0 - thick_ny / arc_ry_ny
-                if abs(nx_norm) <= 1.0 and ny_norm >= 0.0:
-                    r_outer = nx_norm ** 2 + ny_norm ** 2
-                    ny_inner = (ny - arc_cy_ny - thick_ny) / arc_ry_ny if arc_ry_ny > 0 else 0
-                    r_inner = nx_norm ** 2 + (ny_inner if ny_inner > 0 else 0) ** 2
-                    in_outer = r_outer <= 1.0
-                    in_inner = r_inner <= (inner_scale ** 2) if inner_scale > 0 else False
-                    if in_outer and not in_inner:
-                        arch_a = BASE_ALPHA
-                        if ny >= FADE_START_NY:
-                            t = (ny - FADE_START_NY) / (FADE_END_NY - FADE_START_NY)
-                            arch_a = int(arch_a * (1.0 - t))
-                        a = max(a, arch_a)
             if a > 0:
                 row += [SR, SG, SB, a]
             else:
@@ -136,15 +104,20 @@ def make_scenery_fore(path, w=1920, h=1080):
     RIGHT_X = 1620
     PILLAR_W = 150
     FADE_W = 60
-    PILLAR_ALPHA = 235
+    PILLAR_ALPHA = 200
+    PILLAR_NY_END = 0.34
+    PILLAR_FADE_START = 0.26
     CHAIN_ALPHA = 255
     CHAIN_L_X = 275
     CHAIN_R_X = 1645
-    CHAIN_NY_END = 0.45
-    RING_H = 28
-    RING_W = 18
-    RING_GAP = 14
+    CHAIN_NY_END = 0.30
+    RING_H = 36
+    RING_W = 22
+    RING_GAP = -6
+    RING_THICK = 6
     FR, FG, FB = 6, 9, 16
+
+    period = RING_H + RING_GAP  # 30
 
     rows = []
     for y in range(h):
@@ -152,35 +125,44 @@ def make_scenery_fore(path, w=1920, h=1080):
         row = []
         for x in range(w):
             a = 0
-            # left pillar: x < LEFT_X, outer edge at x=0, inner edge at x=LEFT_X
-            if x < LEFT_X:
+            # left pillar
+            if x < LEFT_X and ny < PILLAR_NY_END:
                 inner_dist = LEFT_X - x
-                if inner_dist <= FADE_W:
-                    t = inner_dist / FADE_W
-                    a = max(a, int(PILLAR_ALPHA * t))
-                else:
-                    a = max(a, PILLAR_ALPHA)
-            # right pillar: x > RIGHT_X, outer edge at x=w-1, inner edge at x=RIGHT_X
-            if x > RIGHT_X:
+                base_a = int(PILLAR_ALPHA * min(inner_dist, FADE_W) / FADE_W)
+                if ny >= PILLAR_FADE_START:
+                    tv = (ny - PILLAR_FADE_START) / (PILLAR_NY_END - PILLAR_FADE_START)
+                    base_a = int(base_a * (1.0 - tv))
+                a = max(a, base_a)
+            # right pillar
+            if x > RIGHT_X and ny < PILLAR_NY_END:
                 inner_dist = x - RIGHT_X
-                if inner_dist <= FADE_W:
-                    t = inner_dist / FADE_W
-                    a = max(a, int(PILLAR_ALPHA * t))
-                else:
-                    a = max(a, PILLAR_ALPHA)
-            # chains (only in ny 0..CHAIN_NY_END)
+                base_a = int(PILLAR_ALPHA * min(inner_dist, FADE_W) / FADE_W)
+                if ny >= PILLAR_FADE_START:
+                    tv = (ny - PILLAR_FADE_START) / (PILLAR_NY_END - PILLAR_FADE_START)
+                    base_a = int(base_a * (1.0 - tv))
+                a = max(a, base_a)
+            # chains (hollow overlapping rings)
             if ny <= CHAIN_NY_END:
+                rx = RING_W / 2.0
+                ry = RING_H / 2.0
+                rx_in = rx - RING_THICK
+                ry_in = ry - RING_THICK
                 for cx in (CHAIN_L_X, CHAIN_R_X):
-                    if abs(x - cx) <= RING_W // 2:
-                        # determine which ring segment this y falls in
-                        period = RING_H + RING_GAP
-                        y_in_period = int(y) % period
-                        if y_in_period < RING_H:
-                            # inside a ring oval vertically
-                            ring_cy = y_in_period - RING_H / 2
-                            ring_nx = (x - cx) / (RING_W / 2)
-                            ring_ny = ring_cy / (RING_H / 2)
-                            if ring_nx ** 2 + ring_ny ** 2 <= 1.0:
+                    dx = x - cx
+                    if abs(dx) > rx:
+                        continue
+                    # find all ring indices whose span includes y
+                    i_lo = max(0, (y - RING_H + 1) // period)
+                    i_hi = y // period + 1
+                    for i in range(i_lo, i_hi + 1):
+                        ring_top = i * period
+                        dy = y - (ring_top + ry)
+                        nx_e = dx / rx
+                        ny_e = dy / ry
+                        if nx_e ** 2 + ny_e ** 2 <= 1.0:
+                            nx_i = dx / rx_in if rx_in > 0 else 1e9
+                            ny_i = dy / ry_in if ry_in > 0 else 1e9
+                            if nx_i ** 2 + ny_i ** 2 > 1.0:
                                 a = max(a, CHAIN_ALPHA)
             if a > 0:
                 row += [FR, FG, FB, a]
