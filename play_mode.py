@@ -7,6 +7,7 @@ import stage
 import sprite
 import bomb
 import background
+import scenery
 import fx
 import ui
 import sound
@@ -131,6 +132,7 @@ def render():
     if transition.active():
         transition.capture_begin()
     background.draw()
+    scenery.draw_mid()
     game_world.draw_tiles()
     game_world.draw_levers()
     game_world.draw_switches()
@@ -152,6 +154,7 @@ def render():
     fx.draw_switch_lights()
     fx.draw_rail_lights()
     fx.draw_vignette()
+    scenery.draw_fore()
     fx.draw_flash()
     _draw_hud()
     if transition.active():
