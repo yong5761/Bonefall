@@ -34,6 +34,21 @@ ICE_BLAST_MULT = 0.35
 ICE_DECAY_MULT = 6.0
 FROZEN_TINT = (120, 190, 235)
 
+HEAVY_SCALE = 1.3
+HEAVY_WALK_RATIO = 0.55
+HEAVY_BLAST_MULT = 0.45
+HEAVY_STAGGER_TIME = 0.7
+HEAVY_TINT = (168, 158, 146)
+
+TURRET_FIRE_PERIOD = 2.2
+TURRET_TELEGRAPH = 0.4
+TURRET_AIM_LIMIT = 35.0
+
+SHOT_SPEED = 520.0
+SHOT_LIFE = 2.0
+SHOT_BLAST_SRC = 420
+SHOT_HALF = 8
+
 SHEETS = {
     'player_idle':      ('assets/player_idle.png',      16),
     'player_walk':      ('assets/player_walk.png',      16),
@@ -52,6 +67,10 @@ SHEETS = {
     'switch':           ('assets/switch.png',           48),
     'jumppad':          ('assets/jumppad.png',          64),
     'pipe_mouth':       ('assets/pipe_mouth.png',       64),
+    'enemy_turret_base': ('assets/enemy_turret_base.png', 1),
+    'turret_barrel':     ('assets/turret_barrel.png',     1),
+    'shot':              ('assets/shot.png',              1),
+    'heavy_armor':       ('assets/heavy_armor.png',       1),
 }
 
 _cache = {}
