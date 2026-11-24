@@ -22,6 +22,8 @@ _ENTITY_PREFIXES = {
     'K': 'cannon',
     'J': 'jumppad',
     'T': 'pipe',
+    'H': 'heavy',
+    'R': 'turret',
 }
 
 _COORD_COUNTS = {
@@ -34,6 +36,8 @@ _COORD_COUNTS = {
     'cannon': (3,),
     'jumppad': (2,),
     'pipe': (6,),
+    'heavy': (2,),
+    'turret': (2,),
 }
 
 _STAGES = []
@@ -121,7 +125,7 @@ def _load_file(path):
                 sys.exit(f'{fname}:{li}: P: 줄이 둘 이상이다')
             player_start = (nums[0], nums[1])
         elif kind == 'enemy':
-            enemies.append((nums[0], nums[1]))
+            enemies.append(('E', nums[0], nums[1]))
         elif kind == 'lever':
             if lever_start is not None:
                 sys.exit(f'{fname}:{li}: L: 줄이 둘 이상이다')
@@ -138,6 +142,10 @@ def _load_file(path):
             pad_starts.append((nums[0], nums[1]))
         elif kind == 'pipe':
             pipe_starts.append(tuple(nums))
+        elif kind == 'heavy':
+            enemies.append(('H', nums[0], nums[1]))
+        elif kind == 'turret':
+            enemies.append(('R', nums[0], nums[1]))
 
     if player_start is None:
         sys.exit(f'{fname}: P: 줄이 없다')
@@ -197,7 +205,18 @@ def get_stage_data(idx):
 
 
 def build_enemies(idx=0):
-    return [Enemy(x, y) for x, y in _ENEMY_STARTS[idx]]
+    result = []
+    for entry in _ENEMY_STARTS[idx]:
+        t, x, y = entry
+        if t == 'E':
+            result.append(Enemy(x, y))
+        elif t == 'H':
+            from enemy_heavy import HeavyEnemy
+            result.append(HeavyEnemy(x, y))
+        elif t == 'R':
+            from enemy_turret import TurretEnemy
+            result.append(TurretEnemy(x, y))
+    return result
 
 
 def get_lever_start(idx):

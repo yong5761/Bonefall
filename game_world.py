@@ -140,3 +140,15 @@ def draw_pipes():
     for obj in _objects:
         if isinstance(obj, Pipe):
             obj.draw()
+
+
+def get_shots():
+    from shot import Shot
+    return [obj for obj in _objects if isinstance(obj, Shot)]
+
+
+def draw_shots():
+    from shot import Shot
+    for obj in _objects:
+        if isinstance(obj, Shot):
+            obj.draw()

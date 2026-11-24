@@ -140,6 +140,7 @@ def render():
     fx.draw_all_shadows()
     game_world.draw_enemies()
     game_world.draw_bombs()
+    game_world.draw_shots()
     fx.draw_bomb_fuse_lights()
     fx.draw_landing_dust()
     fx.draw_afterimages()

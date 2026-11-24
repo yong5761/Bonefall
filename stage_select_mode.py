@@ -158,7 +158,8 @@ def _draw_card(stage_idx, local_idx, cleared):
 
     spr_sz = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * _MAP_SCALE * sc)
     enemy_img = sprite.load(sprite.SHEETS['enemy_walk'][0])
-    for ex, ey in enemies:
+    for entry in enemies:
+        _, ex, ey = entry
         ecx = map_left + ex * _MAP_SCALE * sc
         ecy = map_bottom_y + ey * _MAP_SCALE * sc
         half = spr_sz / 2
