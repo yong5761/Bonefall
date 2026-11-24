@@ -72,28 +72,15 @@ class HeavyEnemy(Enemy):
             shake_x = random.uniform(-2, 2) * sprite.DRAW_SCALE
             path, _ = sprite.SHEETS[self.SHEET_WALK]
             img = sprite.load(path)
-            t = sprite.HEAVY_TINT
+            if self._stagger_flash_elapsed < sprite.FLASH_TIME:
+                t = (255, 220, 160)
+            else:
+                t = sprite.HEAVY_TINT
             pico2d.SDL_SetTextureColorMod(img.texture, t[0], t[1], t[2])
             img.clip_composite_draw(
                 0, 0, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
                 0, 'h' if self.flip else '',
                 int(self.x + camera.ox + shake_x), int(draw_y), out, out)
             pico2d.SDL_SetTextureColorMod(img.texture, 255, 255, 255)
-            self.draw_overlay(draw_y, shake_x)
         else:
             super().draw()
-
-    def draw_overlay(self, draw_y, shake_x=0.0):
-        path, _ = sprite.SHEETS['heavy_armor']
-        img = sprite.load(path)
-        out = int(sprite.PLAYER_FRAME * sprite.DRAW_SCALE * self.DRAW_SCALE_MULT)
-        flashing = (self.state == STAGGER
-                    and self._stagger_flash_elapsed < sprite.FLASH_TIME)
-        if flashing:
-            pico2d.SDL_SetTextureColorMod(img.texture, 255, 220, 160)
-        img.clip_composite_draw(
-            0, 0, sprite.PLAYER_FRAME, sprite.PLAYER_FRAME,
-            0, 'h' if self.flip else '',
-            int(self.x + camera.ox + shake_x), int(draw_y), out, out)
-        if flashing:
-            pico2d.SDL_SetTextureColorMod(img.texture, 255, 255, 255)

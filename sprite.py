@@ -68,7 +68,6 @@ SHEETS = {
     'jumppad':          ('assets/jumppad.png',          64),
     'pipe_mouth':       ('assets/pipe_mouth.png',       64),
     'shot':              ('assets/shot.png',              1),
-    'heavy_armor':       ('assets/heavy_armor.png',       1),
 }
 
 _cache = {}

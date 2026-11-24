@@ -40,33 +40,6 @@ def make_light(path, s=256):
     write_png(path, s, s, rows)
 
 
-def make_heavy_armor(path, w=100, h=100):
-    rows = []
-    cx = w * 0.5
-    for y in range(h):
-        row = []
-        ny = y / h
-        for x in range(w):
-            nx_abs = abs(x - cx) / cx
-            in_shoulder = ny < 0.38 and nx_abs > 0.14 and nx_abs < 0.9
-            in_chest = ny >= 0.25 and ny < 0.65 and nx_abs < 0.27
-            in_belt = ny >= 0.60 and ny < 0.73 and nx_abs < 0.34
-            if in_shoulder or in_chest or in_belt:
-                if ny < 0.08 and in_shoulder:
-                    r, g, b, a = 128, 118, 105, 215
-                elif nx_abs > 0.76 and in_shoulder:
-                    r, g, b, a = 60, 54, 47, 200
-                elif ny > 0.60 and in_chest:
-                    r, g, b, a = 78, 71, 62, 220
-                else:
-                    r, g, b, a = 92, 84, 74, 220
-                row += [r, g, b, a]
-            else:
-                row += [0, 0, 0, 0]
-        rows.append(row)
-    write_png(path, w, h, rows)
-
-
 def make_shot(path, w=16, h=16):
     rows = []
     cx, cy = w * 0.5, h * 0.5
@@ -91,9 +64,7 @@ if __name__ == '__main__':
     os.makedirs('assets', exist_ok=True)
     make_shadow('assets/shadow.png')
     make_light('assets/light.png')
-    make_heavy_armor('assets/heavy_armor.png')
     make_shot('assets/shot.png')
     print('assets/shadow.png 160x80')
     print('assets/light.png 256x256')
-    print('assets/heavy_armor.png 100x100')
     print('assets/shot.png 16x16')
