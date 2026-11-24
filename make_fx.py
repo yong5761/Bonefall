@@ -101,14 +101,14 @@ def make_turret_base(path, w=100, h=100):
         ny = y / h
         for x in range(w):
             nx_abs = abs(x - cx) / cx
-            in_dome = (ny < 0.42 and
-                       (nx_abs / 0.52) ** 2 + (ny / 0.42) ** 2 < 1.0)
-            in_body = ny >= 0.36 and ny < 0.74 and nx_abs < 0.28
-            in_base = ny >= 0.70 and ny < 0.86 and nx_abs < 0.44
+            in_dome = (ny >= 0.55 and ny < 0.72 and
+                       (nx_abs / 0.52) ** 2 + ((ny - 0.55) / 0.17) ** 2 < 1.0)
+            in_body = ny >= 0.68 and ny < 0.86 and nx_abs < 0.28
+            in_base = ny >= 0.84 and ny < 0.96 and nx_abs < 0.44
             if in_dome or in_body or in_base:
-                if ny < 0.10 and in_dome:
+                if ny < 0.65 and in_dome:
                     r, g, b, a = 118, 108, 95, 240
-                elif nx_abs < 0.12 and ny < 0.42:
+                elif nx_abs < 0.12 and ny < 0.72:
                     r, g, b, a = 108, 98, 86, 240
                 elif nx_abs > 0.40 and in_base:
                     r, g, b, a = 62, 56, 49, 230

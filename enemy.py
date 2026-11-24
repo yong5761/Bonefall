@@ -33,7 +33,6 @@ class Enemy:
 
     def __init__(self, x, y):
         self.x = float(x)
-        self.y = float(y)
         self.vx = 0.0
         self.vy = 0.0
         self.state = WALK
@@ -54,6 +53,7 @@ class Enemy:
         self._freeze_elapsed = 0.0
         self.half_w = int(ENEMY_HALF_W * self.DRAW_SCALE_MULT)
         self.half_h = int(HALF_H * self.DRAW_SCALE_MULT)
+        self.y = float(y) + (self.half_h - HALF_H)
         tiles = game_world.get_tiles()
         self._fade_threshold_y = min((t.surface_y for t in tiles), default=0.0)
 
