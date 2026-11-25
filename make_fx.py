@@ -134,346 +134,198 @@ def make_scenery_fore(path, w=1920, h=1080):
 
 
 def make_tiles(path):
-    TW, TH = 80, 80
-    FRAMES = 20
-    W = TW * FRAMES
+    from PIL import Image as _Img
+    TW, TH, SURF = 80, 80, 40
+    TOTAL_W = TW * 20
+    SX, SY = 200, 520   # sample region in background_mine.png (320x40)
 
-    # --- helpers ---
-    def _hash(x, y, seed=0):
-        v = (x * 73856093) ^ (y * 19349663) ^ (seed * 83492791)
-        return ((v >> 3) & 0x7FFFFFFF)
+    def _h(x, y, s=0):
+        return (((x * 73856093) ^ (y * 19349663) ^ (s * 83492791)) >> 3) & 0x7FFFFFFF
+    def _c(v): return max(0, min(255, int(v)))
+    def _lp(a, b, t): return int(a + (b - a) * t)
 
-    def _clamp(v): return max(0, min(255, v))
+    src = _Img.open('assets/background_mine.png').convert('RGB')
+    sp = src.load()
 
-    def _lerp(a, b, t): return int(a + (b - a) * t)
+    rows = [[0] * (TOTAL_W * 4) for _ in range(TH)]
 
-    # write a pixel into a flat RGBA list indexed [y][x*4+c]
-    def _put(rows, x, y, r, g, b, a):
+    def put(fi, x, y, r, g, b, a=255):
         if 0 <= x < TW and 0 <= y < TH:
-            base = x * 4
-            rows[y][base] = r; rows[y][base+1] = g
-            rows[y][base+2] = b; rows[y][base+3] = a
+            p = (fi * TW + x) * 4
+            rows[y][p] = _c(r); rows[y][p+1] = _c(g)
+            rows[y][p+2] = _c(b); rows[y][p+3] = _c(a)
 
-    def _get(rows, x, y):
+    def getpx(fi, x, y):
         if 0 <= x < TW and 0 <= y < TH:
-            b = x * 4
-            return rows[y][b], rows[y][b+1], rows[y][b+2], rows[y][b+3]
+            p = (fi * TW + x) * 4
+            return rows[y][p], rows[y][p+1], rows[y][p+2], rows[y][p+3]
         return 0, 0, 0, 0
 
-    def _blend(rows, x, y, r, g, b, a):
-        if 0 <= x < TW and 0 <= y < TH:
-            pr, pg, pb, pa = _get(rows, x, y)
-            t = a / 255.0
-            _put(rows, x, y, _clamp(int(pr*(1-t)+r*t)), _clamp(int(pg*(1-t)+g*t)),
-                 _clamp(int(pb*(1-t)+b*t)), max(pa, a))
+    def apply_caps(fi, lc, rc, edge_w=6, max_dark=0.72):
+        for ex in range(edge_w):
+            dark = (edge_w - ex) / edge_w * max_dark
+            if lc:
+                for y in range(TH):
+                    r, g, b, a = getpx(fi, ex, y)
+                    put(fi, ex, y, r*(1-dark), g*(1-dark), b*(1-dark), a)
+            if rc:
+                x2 = TW - 1 - ex
+                for y in range(TH):
+                    r, g, b, a = getpx(fi, x2, y)
+                    put(fi, x2, y, r*(1-dark), g*(1-dark), b*(1-dark), a)
 
-    # corner-cut mask: returns False if pixel is in a cut corner (4px)
-    CUT = 4
-    def _corner_cut(x, y, left_cap, right_cap):
-        if left_cap:
-            if x < CUT and y < CUT - x: return False
-            if x < CUT and y >= TH - (CUT - x): return False
-        if right_cap:
-            rx = TW - 1 - x
-            if rx < CUT and y < CUT - rx: return False
-            if rx < CUT and y >= TH - (CUT - rx): return False
-        return True
-
-    # --- stone (frames 0-3) ---
-    def make_stone(fi, left_cap, right_cap):
-        rows = [[0]*TW*4 for _ in range(TH)]
-        SURF = 40  # surface height
-
-        for y in range(TH):
-            for x in range(TW):
-                if not _corner_cut(x, y, left_cap, right_cap):
-                    continue
-                if y < SURF:
-                    # surface gradient #7A6E5C -> #3A332B
-                    t = y / (SURF - 1)
-                    r = _lerp(0x7A, 0x3A, t)
-                    g = _lerp(0x6E, 0x33, t)
-                    b = _lerp(0x5C, 0x2B, t)
-                    al = 255
-                else:
-                    # underside gradient -> #241F1A, bottom 6px alpha fade
-                    td = (y - SURF) / (TH - SURF - 1) if TH > SURF + 1 else 0
-                    r = _lerp(0x3A, 0x24, td)
-                    g = _lerp(0x33, 0x1F, td)
-                    b = _lerp(0x2B, 0x1A, td)
-                    al = 255
-                    if y >= TH - 6:
-                        fade_t = (y - (TH - 6)) / 5
-                        al = _clamp(int(255 - (255 - 180) * fade_t))
-                _put(rows, x, y, r, g, b, al)
-
-        # highlight top 5px
-        for y in range(5):
-            for x in range(TW):
-                if _corner_cut(x, y, left_cap, right_cap):
-                    _put(rows, x, y, 0x9A, 0x8C, 0x74, 255)
-
-        # dark line below surface (3px)
-        for y in range(SURF, SURF + 3):
-            for x in range(TW):
-                if _corner_cut(x, y, left_cap, right_cap):
-                    _put(rows, x, y, 0x2A, 0x25, 0x1E, 255)
-
-        # border on caps (2px dark)
-        if left_cap:
-            for y in range(CUT, TH - CUT):
-                _put(rows, 0, y, 0x2A, 0x25, 0x1E, 255)
-                _put(rows, 1, y, 0x2A, 0x25, 0x1E, 255)
-        if right_cap:
-            for y in range(CUT, TH - CUT):
-                _put(rows, TW-1, y, 0x2A, 0x25, 0x1E, 255)
-                _put(rows, TW-2, y, 0x2A, 0x25, 0x1E, 255)
-
-        # stone split lines (vary position per frame)
-        # vertical: 2 lines inside SURF zone
-        offsets_v = [(23 + fi*7) % (TW-8) + 4, (51 + fi*13) % (TW-8) + 4]
-        for vx in offsets_v:
-            for y in range(2, SURF):
-                if _corner_cut(vx, y, left_cap, right_cap):
-                    _put(rows, vx, y, 0x2A, 0x25, 0x1E, 255)
-                    if vx+1 < TW:
-                        _put(rows, vx+1, y, 0x2A, 0x25, 0x1E, 255)
-        # horizontal: 1 line
-        hy = (12 + fi*5) % (SURF - 8) + 4
-        for x in range(2, TW-2):
-            if _corner_cut(x, hy, left_cap, right_cap):
-                _put(rows, x, hy, 0x2A, 0x25, 0x1E, 255)
-
-        # speckle (6% of surface pixels)
-        for y in range(1, SURF - 1):
-            for x in range(TW):
-                h = _hash(x + fi*80, y)
-                if h % 100 < 3:
-                    _blend(rows, x, y, 0x8C, 0x7F, 0x69, 160)
-                elif h % 100 < 6:
-                    _blend(rows, x, y, 0x33, 0x2C, 0x25, 160)
-
-        # moss strip on highlight (irregular horizontal band 3-5px thick)
-        moss_thick = 3 + (fi * 3) % 3  # 3,4,5 per frame variant
-        # break points: 3 segments with gaps
-        gaps = [(10 + fi*17) % (TW//2), (40 + fi*11) % (TW//2) + TW//4]
-        GAP_W = 10 + fi * 3
-        for y in range(2, 2 + moss_thick):
-            for x in range(TW):
-                in_gap = any(abs(x - gx) < GAP_W // 2 for gx in gaps)
-                if not in_gap and _corner_cut(x, y, left_cap, right_cap):
-                    _blend(rows, x, y, 0x5A, 0x6B, 0x3A, 120)
-
-        return rows
-
-    # --- wood (frames 4-7) ---
-    def make_wood(fi, left_cap, right_cap):
-        rows = [[0]*TW*4 for _ in range(TH)]
-        SURF = 40
-
-        for y in range(TH):
-            for x in range(TW):
-                if not _corner_cut(x, y, left_cap, right_cap):
-                    continue
-                if y < SURF:
-                    t = y / (SURF - 1)
-                    r = _lerp(0x7A, 0x3E, t)
-                    g = _lerp(0x5A, 0x2C, t)
-                    b = _lerp(0x38, 0x1C, t)
-                    al = 255
-                else:
-                    td = (y - SURF) / (TH - SURF - 1) if TH > SURF + 1 else 0
-                    r = _lerp(0x3E, 0x20, td)
-                    g = _lerp(0x2C, 0x16, td)
-                    b = _lerp(0x1C, 0x0E, td)
-                    al = 255
-                    if y >= TH - 6:
-                        fade_t = (y - (TH - 6)) / 5
-                        al = _clamp(int(255 - (255 - 180) * fade_t))
-                _put(rows, x, y, r, g, b, al)
-
-        # highlight top 4px
-        for y in range(4):
-            for x in range(TW):
-                if _corner_cut(x, y, left_cap, right_cap):
-                    _put(rows, x, y, 0x96, 0x74, 0x4A, 255)
-
-        if left_cap:
-            for y in range(CUT, TH - CUT):
-                _put(rows, 0, y, 0x2A, 0x1A, 0x0C, 255)
-                _put(rows, 1, y, 0x2A, 0x1A, 0x0C, 255)
-        if right_cap:
-            for y in range(CUT, TH - CUT):
-                _put(rows, TW-1, y, 0x2A, 0x1A, 0x0C, 255)
-                _put(rows, TW-2, y, 0x2A, 0x1A, 0x0C, 255)
-
-        # grain lines (5-7 horizontal lines, vary per frame)
-        num_grains = 5 + fi % 3
-        for gi in range(num_grains):
-            gy = int(6 + gi * (SURF - 6) / num_grains + (fi * 3 + gi * 7) % 4)
-            gx_start = (_hash(fi, gi, 1) % (TW // 3))
-            gx_len = TW // 2 + (_hash(fi, gi, 2) % (TW // 3))
-            thickness = 1 + (gi + fi) % 2
-            for t in range(thickness):
-                for gx in range(gx_start, min(gx_start + gx_len, TW)):
-                    if _corner_cut(gx, gy + t, left_cap, right_cap):
-                        _blend(rows, gx, gy + t, 0x4A, 0x35, 0x22, 180)
-
-        # plank dividers: 2 vertical dark lines
-        px1 = (22 + fi * 11) % (TW - 10) + 5
-        px2 = (50 + fi * 7) % (TW - 10) + 5
-        for pxv in (px1, px2):
-            for y in range(2, TH - 2):
-                if _corner_cut(pxv, y, left_cap, right_cap):
-                    _put(rows, pxv, y, 0x2A, 0x1A, 0x0C, 255)
-
-        # nails: 2x2 bright dots at plank ends
-        plank_starts = [0, px1 + 2, px2 + 2]
-        plank_ends = [px1 - 2, px2 - 2, TW - 1]
-        for ps, pe in zip(plank_starts, plank_ends):
-            nail_y = 15 + fi % 5
-            for nx2 in (ps + 3, pe - 3):
-                for dy2 in range(2):
-                    for dx2 in range(2):
-                        nx3, ny3 = nx2 + dx2, nail_y + dy2
-                        if _corner_cut(nx3, ny3, left_cap, right_cap):
-                            _put(rows, nx3, ny3, 0xA8, 0x90, 0x70, 255)
-
-        return rows
-
-    # --- crumbling wood (frames 8-11, based on wood center fi=1) ---
-    def make_crumble(stage):
-        # start from wood center
-        rows = make_wood(1, False, False)
-        SURF = 40
-
-        crack_color = (0x2A, 0x1C, 0x10)
-
-        def crack(rows, x0, y0, dx, dy, length):
-            cx2, cy2 = x0, y0
-            for _ in range(length):
-                _put(rows, int(cx2), int(cy2), *crack_color, 255)
-                if int(cx2+1) < TW:
-                    _put(rows, int(cx2)+1, int(cy2), *crack_color, 200)
-                cx2 += dx; cy2 += dy
-
-        if stage >= 0:  # 1 crack
-            crack(rows, 20, 2, 0.6, 1.2, 18)
-        if stage >= 1:  # 3 cracks total
-            crack(rows, 50, 3, -0.4, 1.0, 20)
-            crack(rows, 35, 8, 1.0, 0.3, 15)
-        if stage >= 2:  # corners gone (alpha=0)
-            for y in range(TH):
-                for x in range(TW):
-                    if x < 12 and y > TH - 20:
-                        _put(rows, x, y, 0, 0, 0, 0)
-                    if x > TW - 13 and y > TH - 15:
-                        _put(rows, x, y, 0, 0, 0, 0)
-                    if x < 8 and y < 12:
-                        _put(rows, x, y, 0, 0, 0, 0)
-        if stage >= 3:  # more than half gone
-            for y in range(TH):
-                for x in range(TW):
-                    if x > TW // 2 + 10 and y > SURF - 5:
-                        _put(rows, x, y, 0, 0, 0, 0)
-                    if x < 20 and y > SURF + 10:
-                        _put(rows, x, y, 0, 0, 0, 0)
-                    if y > SURF + 25:
-                        _put(rows, x, y, 0, 0, 0, 0)
-
-        return rows
-
-    # --- ice (frames 12-15) ---
-    def make_ice(fi, left_cap, right_cap):
-        rows = [[0]*TW*4 for _ in range(TH)]
-        SURF = 40
-        ICE_ALPHA = 215
-
-        for y in range(TH):
-            for x in range(TW):
-                if not _corner_cut(x, y, left_cap, right_cap):
-                    continue
-                if y < SURF:
-                    t = y / (SURF - 1)
-                    r = _lerp(0xA8, 0x4A, t)
-                    g = _lerp(0xD4, 0x7A, t)
-                    b = _lerp(0xE8, 0x94, t)
-                    al = ICE_ALPHA
-                else:
-                    td = (y - SURF) / (TH - SURF - 1) if TH > SURF + 1 else 0
-                    r = _lerp(0x4A, 0x28, td)
-                    g = _lerp(0x7A, 0x40, td)
-                    b = _lerp(0x94, 0x54, td)
-                    al = ICE_ALPHA
-                    if y >= TH - 6:
-                        fade_t = (y - (TH - 6)) / 5
-                        al = _clamp(int(ICE_ALPHA - (ICE_ALPHA - 100) * fade_t))
-                _put(rows, x, y, r, g, b, al)
-
-        # highlight top 4px
-        for y in range(4):
-            for x in range(TW):
-                if _corner_cut(x, y, left_cap, right_cap):
-                    _put(rows, x, y, 0xE4, 0xF4, 0xFC, ICE_ALPHA)
-
-        if left_cap:
-            for y in range(CUT, TH - CUT):
-                _put(rows, 0, y, 0x38, 0x60, 0x78, ICE_ALPHA)
-                _put(rows, 1, y, 0x38, 0x60, 0x78, ICE_ALPHA)
-        if right_cap:
-            for y in range(CUT, TH - CUT):
-                _put(rows, TW-1, y, 0x38, 0x60, 0x78, ICE_ALPHA)
-                _put(rows, TW-2, y, 0x38, 0x60, 0x78, ICE_ALPHA)
-
-        # gloss diagonal bands (2 bands, top-left to bottom-right)
-        for band in range(2):
-            band_offset = 8 + band * 20 + fi * 5
-            for y in range(SURF):
-                for x in range(TW):
-                    if not _corner_cut(x, y, left_cap, right_cap):
-                        continue
-                    d = abs((x + y) - band_offset)
-                    if d < 6:
-                        _blend(rows, x, y, 0xD0, 0xEC, 0xF8, int(120 * (1 - d / 6)))
-
-        # cracks (2-3 thin white lines, vary per frame)
-        num_cracks = 2 + fi % 2
-        for ci in range(num_cracks):
-            cx2 = (_hash(fi, ci, 10) % (TW - 20)) + 10
-            cy2 = (_hash(fi, ci, 11) % (SURF - 10)) + 3
-            cdx = ((_hash(fi, ci, 12) % 11) - 5) / 5.0
-            for step in range(10 + ci * 4):
-                _blend(rows, int(cx2), int(cy2), 0xFF, 0xFF, 0xFF, 90)
-                cx2 += cdx; cy2 += 1
-                if cy2 >= SURF: break
-
-        return rows
-
-    # --- assemble all 20 frames ---
-    # cap layout: (left_cap, right_cap) for indices 0-3 within each set
     CAP = [(True, False), (False, False), (False, True), (True, True)]
 
-    all_rows = [[0] * (W * 4) for _ in range(TH)]
+    # ---- STONE (0-3): background crop ----
+    for fi in range(4):
+        xo = fi * 80
+        lc, rc = CAP[fi]
+        for y in range(SURF):
+            for x in range(TW):
+                r0, g0, b0 = sp[SX + xo + x, SY + y]
+                if y < 2:
+                    t = 0.75
+                    r = _c(r0 + (255-r0)*t); g = _c(g0 + (255-g0)*t); b = _c(b0 + (255-b0)*t)
+                elif y < 7:
+                    r = _c(r0*1.5); g = _c(g0*1.5); b = _c(b0*1.5)
+                elif y < 10:
+                    r = _c(r0*0.45); g = _c(g0*0.45); b = _c(b0*0.45)
+                else:
+                    r = _c(r0*1.35); g = _c(g0*1.35); b = _c(b0*1.35)
+                put(fi, x, y, r, g, b, 255)
+        for y in range(SURF, TH):
+            td = (y - SURF) / max(TH - SURF - 1, 1)
+            bright = 0.40 - 0.20 * td
+            al = 255
+            if y >= TH - 8:
+                ft = (y - (TH - 8)) / 7.0
+                al = _c(255 - 105 * ft)
+            for x in range(TW):
+                r0, g0, b0 = sp[SX + xo + x, SY + (y - SURF)]
+                put(fi, x, y, _c(r0*bright), _c(g0*bright), _c(b0*bright), al)
+        apply_caps(fi, lc, rc)
+        for x in range(TW):
+            mh = _h(x + fi*80, 999) % 8
+            for my in range(mh):
+                r, g, b, a = getpx(fi, x, my)
+                t = 110/255.0
+                put(fi, x, my, _c(r*(1-t)+90*t), _c(g*(1-t)+112*t), _c(b*(1-t)+58*t), 255)
 
-    def blit(frame_rows, fi):
-        ox = fi * TW
+    # ---- WOOD (4-7) ----
+    for fi_off in range(4):
+        fi = 4 + fi_off
+        lc, rc = CAP[fi_off]
         for y in range(TH):
             for x in range(TW):
-                src = x * 4
-                dst = (ox + x) * 4
-                all_rows[y][dst:dst+4] = frame_rows[y][src:src+4]
+                if y < SURF:
+                    t = y / (SURF - 1)
+                    put(fi, x, y, _lp(0x7A,0x3E,t), _lp(0x5A,0x2C,t), _lp(0x38,0x1C,t), 255)
+                else:
+                    td = (y - SURF) / max(TH - SURF - 1, 1)
+                    bright = 0.40 - 0.20 * td
+                    al = 255
+                    if y >= TH - 8:
+                        ft = (y - (TH - 8)) / 7.0
+                        al = _c(255 - 105 * ft)
+                    put(fi, x, y, _c(_lp(0x3E,0x20,td)*bright), _c(_lp(0x2C,0x16,td)*bright),
+                        _c(_lp(0x1C,0x0E,td)*bright), al)
+        for y in range(4):
+            for x in range(TW):
+                put(fi, x, y, 0x96, 0x74, 0x4A, 255)
+        for y in range(SURF, min(SURF+2, TH)):
+            for x in range(TW):
+                r, g, b, a = getpx(fi, x, y)
+                put(fi, x, y, _c(r*0.5), _c(g*0.5), _c(b*0.5), a)
+        num_g = 5 + fi_off % 3
+        for gi in range(num_g):
+            gy = int(6 + gi*(SURF-6)/num_g + (fi_off*3 + gi*7)%4)
+            gx0 = _h(fi_off, gi, 1) % (TW//3)
+            gx_len = TW//2 + _h(fi_off, gi, 2) % (TW//3)
+            thick = 1 + (gi + fi_off) % 2
+            for t2 in range(thick):
+                for gx in range(gx0, min(gx0+gx_len, TW)):
+                    if 0 <= gy+t2 < SURF:
+                        r, g, b, a = getpx(fi, gx, gy+t2)
+                        put(fi, gx, gy+t2, _c(r*0.70), _c(g*0.70), _c(b*0.70), a)
+        apply_caps(fi, lc, rc)
 
-    for i in range(4):
-        blit(make_stone(i, *CAP[i]), i)
-    for i in range(4):
-        blit(make_wood(i, *CAP[i]), 4 + i)
-    for i in range(4):
-        blit(make_crumble(i), 8 + i)
-    for i in range(4):
-        blit(make_ice(i, *CAP[i]), 12 + i)
+    # ---- CRUMBLE (8-11) ----
+    def _crack(fi, x0, y0, dx, dy, length):
+        cx2, cy2 = float(x0), float(y0)
+        for _ in range(length):
+            put(fi, int(cx2), int(cy2), 0x2A, 0x1C, 0x10, 255)
+            cx2 += dx; cy2 += dy
+
+    for stage in range(4):
+        fi = 8 + stage
+        fi_src = 5
+        for y in range(TH):
+            for x in range(TW):
+                r, g, b, a = getpx(fi_src, x, y)
+                put(fi, x, y, r, g, b, a)
+        if stage >= 0: _crack(fi, 20, 2, 0.6, 1.2, 18)
+        if stage >= 1:
+            _crack(fi, 50, 3, -0.4, 1.0, 20)
+            _crack(fi, 35, 8, 1.0, 0.3, 15)
+        if stage >= 2:
+            for y in range(TH):
+                for x in range(TW):
+                    if x < 12 and y > TH-20: put(fi, x, y, 0, 0, 0, 0)
+                    if x > TW-13 and y > TH-15: put(fi, x, y, 0, 0, 0, 0)
+                    if x < 8 and y < 12: put(fi, x, y, 0, 0, 0, 0)
+        if stage >= 3:
+            for y in range(TH):
+                for x in range(TW):
+                    if x > TW//2+10 and y > SURF-5: put(fi, x, y, 0, 0, 0, 0)
+                    if x < 20 and y > SURF+10: put(fi, x, y, 0, 0, 0, 0)
+                    if y > SURF+25: put(fi, x, y, 0, 0, 0, 0)
+
+    # ---- ICE (12-15) ----
+    for fi_off in range(4):
+        fi = 12 + fi_off
+        lc, rc = CAP[fi_off]
+        ICE_A = 215
+        for y in range(TH):
+            for x in range(TW):
+                if y < SURF:
+                    t = y / (SURF - 1)
+                    r = _c(_lp(0xA8,0x4A,t)); g = _c(_lp(0xD4,0x7A,t)); b = _c(_lp(0xE8,0x94,t))
+                    put(fi, x, y, r, g, b, ICE_A)
+                else:
+                    td = (y-SURF) / max(TH-SURF-1, 1)
+                    bright = 0.40 - 0.20*td
+                    al = ICE_A
+                    if y >= TH-8:
+                        ft = (y-(TH-8)) / 7.0
+                        al = _c(ICE_A - (ICE_A-100)*ft)
+                    put(fi, x, y, _c(0x4A*bright*1.5), _c(0x7A*bright*1.5), _c(0x94*bright*1.5), al)
+        for y in range(4):
+            for x in range(TW):
+                put(fi, x, y, 0xE4, 0xF4, 0xFC, ICE_A)
+        for band in range(2):
+            bo = 8 + band*20 + fi_off*5
+            for y in range(SURF):
+                for x in range(TW):
+                    d = abs((x+y) - bo)
+                    if d < 6:
+                        r, g, b, a = getpx(fi, x, y)
+                        t2 = int(120*(1-d/6)) / 255.0
+                        put(fi, x, y, _c(r*(1-t2)+0xD0*t2), _c(g*(1-t2)+0xEC*t2), _c(b*(1-t2)+0xF8*t2), a)
+        num_cracks = 2 + fi_off%2
+        for ci in range(num_cracks):
+            cx2 = float((_h(fi_off, ci, 10) % (TW-20)) + 10)
+            cy2 = float((_h(fi_off, ci, 11) % (SURF-10)) + 3)
+            cdx = ((_h(fi_off, ci, 12) % 11) - 5) / 5.0
+            for _step in range(10 + ci*4):
+                r, g, b, a = getpx(fi, int(cx2), int(cy2))
+                t3 = 90/255.0
+                put(fi, int(cx2), int(cy2), _c(r*(1-t3)+255*t3), _c(g*(1-t3)+255*t3), _c(b*(1-t3)+255*t3), a)
+                cx2 += cdx; cy2 += 1
+                if int(cy2) >= SURF: break
+        apply_caps(fi, lc, rc)
+
     # frames 16-19: fully transparent (already zeroed)
-
-    write_png(path, W, TH, all_rows)
+    write_png(path, TOTAL_W, TH, rows)
 
 
 if __name__ == '__main__':
