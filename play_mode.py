@@ -132,7 +132,6 @@ def render():
     if transition.active():
         transition.capture_begin()
     background.draw()
-    scenery.draw_mid()
     game_world.draw_tiles()
     game_world.draw_levers()
     game_world.draw_switches()

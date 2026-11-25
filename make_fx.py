@@ -60,45 +60,6 @@ def make_shot(path, w=16, h=16):
     write_png(path, w, h, rows)
 
 
-def make_scenery_mid(path, w=1920, h=1080):
-    PILLAR_CX = [300, 960, 1620]
-    PILLAR_W = 150
-    PILLAR_EDGE = 20
-    FADE_START_NY = 0.40
-    FADE_END_NY = 0.55
-    BASE_ALPHA = 175
-    EDGE_ALPHA = 70
-    SR, SG, SB = 10, 14, 24
-
-    rows = []
-    for y in range(h):
-        ny = y / h
-        row = []
-        if ny >= FADE_END_NY:
-            rows.append([0, 0, 0, 0] * w)
-            continue
-        for x in range(w):
-            a = 0
-            for pcx in PILLAR_CX:
-                dx = abs(x - pcx)
-                if dx < PILLAR_W / 2:
-                    dist_edge = (PILLAR_W / 2) - dx
-                    if dist_edge < PILLAR_EDGE:
-                        col_a = int(EDGE_ALPHA + (BASE_ALPHA - EDGE_ALPHA) * dist_edge / PILLAR_EDGE)
-                    else:
-                        col_a = BASE_ALPHA
-                    if ny >= FADE_START_NY:
-                        t = (ny - FADE_START_NY) / (FADE_END_NY - FADE_START_NY)
-                        col_a = int(col_a * (1.0 - t))
-                    a = max(a, col_a)
-            if a > 0:
-                row += [SR, SG, SB, a]
-            else:
-                row += [0, 0, 0, 0]
-        rows.append(row)
-    write_png(path, w, h, rows)
-
-
 def make_scenery_fore(path, w=1920, h=1080):
     LEFT_X = 300
     RIGHT_X = 1620
@@ -177,10 +138,8 @@ if __name__ == '__main__':
     make_shadow('assets/shadow.png')
     make_light('assets/light.png')
     make_shot('assets/shot.png')
-    make_scenery_mid('assets/scenery_mid.png')
     make_scenery_fore('assets/scenery_fore.png')
     print('assets/shadow.png 160x80')
     print('assets/light.png 256x256')
     print('assets/shot.png 16x16')
-    print('assets/scenery_mid.png 1920x1080')
     print('assets/scenery_fore.png 1920x1080')
